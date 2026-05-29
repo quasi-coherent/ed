@@ -1,8 +1,9 @@
 {
   crane,
-  pname,
   src,
+  pname,
   version,
+  strictDeps,
 }:
 # The goal of this derivation is to include everything in the workspace
 # dependencies.  That way everything that is needed to build crates here
@@ -10,6 +11,10 @@
 # solution like cachix and the result is instant builds for anyone who can
 # pull from the cache.
 crane.buildDepsOnly {
-  inherit src pname version;
-  strictDeps = true;
+  inherit
+    src
+    pname
+    version
+    strictDeps
+    ;
 }

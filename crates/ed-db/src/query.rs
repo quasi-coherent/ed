@@ -67,7 +67,7 @@ pub trait WriteEdApiSchema {
     /// `ed_api.embeddings` insert.
     fn insert_embeddings<'v, 'a: 'v>(
         &'a self,
-        value: &'v Vec<EmbeddingValue>,
+        value: &'v [EmbeddingValue],
     ) -> BoxFuture<'v, Result<Vec<uuid::Uuid>>>;
 
     /// `ed_api.simulations` insert.

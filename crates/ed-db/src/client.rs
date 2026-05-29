@@ -229,10 +229,10 @@ impl WriteEdApiSchema for EdDbClient {
 
     fn insert_embeddings<'v, 'a: 'v>(
         &'a self,
-        value: &'v Vec<EmbeddingValue>,
+        value: &'v [EmbeddingValue],
     ) -> BoxFuture<'v, anyhow::Result<Vec<uuid::Uuid>>> {
         Box::pin(async move {
-            let columnar = EmbeddingValueColumnar::from_vec(value);
+            let columnar = EmbeddingValueColumnar::from_slice(value);
             let res = sqlx::query_file_scalar!(
                 "src/sql/insert_embeddings.sql",
                 &columnar.message_ids.as_slice(),

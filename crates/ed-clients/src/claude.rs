@@ -50,7 +50,7 @@ impl MessagesClient for EdHttpClient {
                 return Err(anyhow::anyhow!("{body}"));
             }
 
-            serde_json::from_slice::<MessagesResponseRaw>(&bytes)
+            serde_json::from_slice::<MessagesResponseRaw>(bytes)
                 .context("messages response serde/failed")
                 .and_then(MessagesResponse::try_from)
         })

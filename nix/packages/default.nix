@@ -6,6 +6,7 @@ let
       commonArgs,
       crane,
       pkgs,
+      rustTools,
       ...
     }:
     let
@@ -18,7 +19,9 @@ let
       frontend = pkgs.callPackage ./frontend.nix { };
       ed-api = pkgs.callPackage ./ed-api.nix { inherit commonArgs crane; };
       ed-migratedb = pkgs.callPackage ./ed-migratedb.nix { inherit commonArgs crane; };
-      ed-server = pkgs.callPackage ./ed-server.nix { inherit commonArgs crane; };
+      ed-server = pkgs.callPackage ./ed-server.nix { inherit commonArgs crane frontend; };
+
+      sqlx-prepare = pkgs.callPackage ./sqlx-prepare.nix { inherit (rustTools) cargo; };
     in
     {
       packages = {
@@ -29,6 +32,7 @@ let
           ed-server
           frontend
           openapiYaml
+          sqlx-prepare
           ;
       };
     };

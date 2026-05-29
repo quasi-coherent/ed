@@ -3,7 +3,6 @@
 //! Takes a `CorpusUpload` (raw text + optional audience hint), splits it into
 //! discrete `Message` values, and derives a `StyleFingerprint` from them in a
 //! single pass over the corpus.
-
 use anyhow::{Result, anyhow};
 use ed_axum::models::{Audience, CorpusUpload, StyleFingerprint};
 
@@ -196,9 +195,7 @@ fn walk_message(m: &Message, acc: &mut Acc) {
     acc.opener_phrases.push(opener);
 
     // Closer: last non-empty short line (< 6 words).
-    if let Some(last_line) =
-        m.body.lines().filter(|l| !l.trim().is_empty()).last()
-    {
+    if let Some(last_line) = m.body.lines().rfind(|l| !l.trim().is_empty()) {
         let lt = last_line.trim();
         if lt.split_whitespace().count() < 6 {
             acc.closer_phrases.push(lt.to_lowercase());
@@ -206,10 +203,10 @@ fn walk_message(m: &Message, acc: &mut Acc) {
     }
 
     // Terminal punctuation on the message as a whole.
-    if let Some(last) = trimmed.chars().last() {
-        if last == '.' || last == '!' || last == '?' {
-            acc.terminal_punct += 1;
-        }
+    if let Some(last) = trimmed.chars().last()
+        && (last == '.' || last == '!' || last == '?')
+    {
+        acc.terminal_punct += 1;
     }
 
     // All-lowercase check.
@@ -295,7 +292,7 @@ fn top_n(items: &[String], n: usize) -> Vec<String> {
             counts.push((item.clone(), 1));
         }
     }
-    counts.sort_by(|a, b| b.1.cmp(&a.1));
+    counts.sort_by_key(|b| std::cmp::Reverse(b.1));
     counts.into_iter().take(n).map(|(s, _)| s).collect()
 }
 

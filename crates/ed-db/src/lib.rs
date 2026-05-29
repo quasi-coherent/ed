@@ -1,8 +1,7 @@
 //! Database layer of ed-api.
 //!
 //! This exposes a query interface that is sufficient for API requests and a
-//! client that implements it.  It also houses migrations for constructing the
-//! database.
+//! client that implements it.
 use std::fmt::{self, Debug, Formatter};
 use std::ops::Deref;
 use std::sync::Arc;

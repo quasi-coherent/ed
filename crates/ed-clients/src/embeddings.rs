@@ -33,7 +33,7 @@ impl EmbeddingsClient for EdHttpClient {
                 return Err(anyhow::anyhow!("{body}"));
             }
 
-            serde_json::from_slice::<EmbeddingsResponseRaw>(&bytes)
+            serde_json::from_slice::<EmbeddingsResponseRaw>(bytes)
                 .context("embeddings response ser/de failed")
                 .and_then(EmbeddingsResponse::try_from)
         })

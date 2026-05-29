@@ -17,15 +17,19 @@ let
         inherit root;
         fileset = lib.fileset.unions [
           (crane.fileset.commonCargoSources root)
+          ../../.sqlx
           ../../crates/ed-migratedb/src/migrations
           ../../crates/ed-db/src/sql
-          ../../crates/ed-db/.sqlx
         ];
       };
 
       workspace = crane.crateNameFromCargoToml { inherit src; };
 
-      cargoArtifacts = pkgs.callPackage ./workspace-dependencies.nix { inherit crane src; };
+      cargoArtifacts = pkgs.callPackage ./workspace-dependencies.nix {
+        inherit (workspace) pname version;
+        inherit crane src;
+        strictDeps = true;
+      };
 
       codegen = openapiYaml: pkgs.callPackage ./codegen.nix { inherit openapiYaml; };
 

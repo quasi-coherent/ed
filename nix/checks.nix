@@ -15,7 +15,7 @@
             src
             strictDeps
             ;
-          cargoClippyExtraArgs = "--all-targets -- -Dwarnings";
+          cargoClippyExtraArgs = "--keep-going --all-targets -- -Dwarnings";
         };
       };
     };

@@ -59,7 +59,7 @@ pub struct EmbeddingValueColumnar<'a> {
 }
 
 impl<'a> EmbeddingValueColumnar<'a> {
-    pub(crate) fn from_vec(
+    pub(crate) fn from_slice(
         vs: &'a [EmbeddingValue],
     ) -> EmbeddingValueColumnar<'a> {
         vs.iter().fold(Self::default(), |mut acc, v| {

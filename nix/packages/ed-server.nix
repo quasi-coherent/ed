@@ -8,7 +8,6 @@ let
   serveBin = crane.buildPackage {
     inherit (commonArgs)
       cargoArtifacts
-      crane
       src
       version
       strictDeps
