@@ -1,0 +1,39 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO ed_api.fingerprints (user_id, formality_score, avg_sentence_length,\n  sentence_length_variance, exclamation_ratio, ellipsis_ratio, emoji_frequency,\n  contraction_ratio, hedging_ratio, common_openers, common_closers,\n  message_count)\n  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)\n  RETURNING id;\n",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ed_api.fingerprints",
+            "name": "id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Float4",
+        "Float4",
+        "Float4",
+        "Float4",
+        "Float4",
+        "Float4",
+        "Float4",
+        "Float4",
+        "TextArray",
+        "TextArray",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "4c481ad8e8deb97df31b89b5184591640e83d387f311bf3c1e264ae91538edeb"
+}

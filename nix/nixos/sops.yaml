@@ -1,0 +1,7 @@
+keys:
+  - &daniel age1hrk0haltt9qtw440yf3lzvjteglrhv3wcwcq54qv0qz2udukmuzqve33my
+creation_rules:
+  - path_regex: ^.*$
+    key_groups:
+      - age:
+          - *daniel

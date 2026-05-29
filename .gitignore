@@ -1,0 +1,13 @@
+.DS_Store
+.direnv/
+target/
+_build
+dist
+node_modules
+.dir-locals.el
+result
+*.install
+!.envrc
+!.github
+!.gitkeep
+!crates/ed-db/.sqlx

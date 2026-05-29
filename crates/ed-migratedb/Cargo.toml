@@ -1,0 +1,15 @@
+[package]
+name = "ed-migratedb"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "ed-migratedb"
+path = "../../bin/migratedb.rs"
+
+[dependencies]
+log = { workspace = true }
+simplelog = { workspace = true }
+sqlx = { version = "0.8", features = ["runtime-tokio"] }
+tern = { workspace = true, features = ["cli", "sqlx_postgres"] }
+tokio = { workspace = true }

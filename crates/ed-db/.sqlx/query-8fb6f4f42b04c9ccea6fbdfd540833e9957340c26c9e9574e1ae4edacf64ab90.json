@@ -1,0 +1,184 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n  id AS fingerprint_id,\n  user_id,\n  formality_score,\n  avg_sentence_length,\n  sentence_length_variance,\n  exclamation_ratio,\n  ellipsis_ratio,\n  emoji_frequency,\n  contraction_ratio,\n  hedging_ratio,\n  common_openers,\n  common_closers,\n  message_count,\n  created_at\nFROM\n  ed_api.fingerprints\nWHERE\n  user_id = $1\nORDER BY created_at DESC\nLIMIT 1;\n",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "fingerprint_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ed_api.fingerprints",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ed_api.fingerprints",
+            "name": "user_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "formality_score",
+        "type_info": "Float4",
+        "origin": {
+          "Table": {
+            "table": "ed_api.fingerprints",
+            "name": "formality_score"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "avg_sentence_length",
+        "type_info": "Float4",
+        "origin": {
+          "Table": {
+            "table": "ed_api.fingerprints",
+            "name": "avg_sentence_length"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "sentence_length_variance",
+        "type_info": "Float4",
+        "origin": {
+          "Table": {
+            "table": "ed_api.fingerprints",
+            "name": "sentence_length_variance"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "exclamation_ratio",
+        "type_info": "Float4",
+        "origin": {
+          "Table": {
+            "table": "ed_api.fingerprints",
+            "name": "exclamation_ratio"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "ellipsis_ratio",
+        "type_info": "Float4",
+        "origin": {
+          "Table": {
+            "table": "ed_api.fingerprints",
+            "name": "ellipsis_ratio"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "emoji_frequency",
+        "type_info": "Float4",
+        "origin": {
+          "Table": {
+            "table": "ed_api.fingerprints",
+            "name": "emoji_frequency"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "contraction_ratio",
+        "type_info": "Float4",
+        "origin": {
+          "Table": {
+            "table": "ed_api.fingerprints",
+            "name": "contraction_ratio"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "hedging_ratio",
+        "type_info": "Float4",
+        "origin": {
+          "Table": {
+            "table": "ed_api.fingerprints",
+            "name": "hedging_ratio"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "common_openers",
+        "type_info": "TextArray",
+        "origin": {
+          "Table": {
+            "table": "ed_api.fingerprints",
+            "name": "common_openers"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "common_closers",
+        "type_info": "TextArray",
+        "origin": {
+          "Table": {
+            "table": "ed_api.fingerprints",
+            "name": "common_closers"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "message_count",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "ed_api.fingerprints",
+            "name": "message_count"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "ed_api.fingerprints",
+            "name": "created_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "8fb6f4f42b04c9ccea6fbdfd540833e9957340c26c9e9574e1ae4edacf64ab90"
+}

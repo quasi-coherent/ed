@@ -1,0 +1,149 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n  id AS simulation_id,\n  user_id,\n  prompt,\n  audience,\n  nudge,\n  generated_text,\n  confidence_overall,\n  confidence_dimensions,\n  retrieved_examples,\n  fingerprint_snapshot,\n  created_at\nFROM\n  ed_api.simulations\nWHERE\n  user_id = $1\n  AND id = $2;\n",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "simulation_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ed_api.simulations",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ed_api.simulations",
+            "name": "user_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "prompt",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "ed_api.simulations",
+            "name": "prompt"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "audience",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "ed_api.simulations",
+            "name": "audience"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "nudge",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "ed_api.simulations",
+            "name": "nudge"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "generated_text",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "ed_api.simulations",
+            "name": "generated_text"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "confidence_overall",
+        "type_info": "Float4",
+        "origin": {
+          "Table": {
+            "table": "ed_api.simulations",
+            "name": "confidence_overall"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "confidence_dimensions",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "ed_api.simulations",
+            "name": "confidence_dimensions"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "retrieved_examples",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "ed_api.simulations",
+            "name": "retrieved_examples"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "fingerprint_snapshot",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "ed_api.simulations",
+            "name": "fingerprint_snapshot"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "ed_api.simulations",
+            "name": "created_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "4e6b8131150f172d91d978aa6e9b6205f741b7e21e530b6862ca00b4489c8ced"
+}

@@ -1,0 +1,76 @@
+.container { max-width: 820px; }
+.title { font-size: 1.5rem; margin: 0 0 0.25rem 0; }
+.subtitle { color: #6b7280; margin: 0 0 1.5rem 0; font-size: 0.95rem; }
+
+.section {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.section h2 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #374151;
+}
+
+.scale {
+  position: relative;
+  height: 8px;
+  background: linear-gradient(to right, #fde68a, #93c5fd);
+  border-radius: 999px;
+  margin: 1rem 0 0.4rem;
+}
+
+.scaleMarker {
+  position: absolute;
+  top: -4px;
+  width: 16px;
+  height: 16px;
+  background: #111827;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  border: 2px solid white;
+}
+
+.scaleLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.35rem 0;
+  border-bottom: 1px dashed #f3f4f6;
+}
+
+.statRow:last-child { border-bottom: none; }
+
+.statLabel { color: #374151; }
+.statValue { font-weight: 600; font-family: ui-monospace, monospace; }
+.statGloss { color: #9ca3af; font-size: 0.8rem; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+.chip {
+  background: #eef2ff;
+  color: #3730a3;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  border: 1px solid #c7d2fe;
+}
+
+.empty { color: #9ca3af; font-style: italic; }
+.loading { color: #6b7280; }
+.error {
+  background: #fee2e2; border: 1px solid #fecaca;
+  color: #b91c1c; padding: 0.75rem 1rem; border-radius: 6px;
+}

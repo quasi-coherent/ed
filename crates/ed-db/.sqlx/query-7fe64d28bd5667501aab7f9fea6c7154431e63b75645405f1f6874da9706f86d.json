@@ -1,0 +1,42 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO ed_api.embeddings (message_id, user_id, vector)\n  SELECT *\n  FROM unnest(\n    $1::uuid[],\n    $2::uuid[],\n    $3::vector[]\n  )\n  RETURNING id;\n",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ed_api.embeddings",
+            "name": "id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "UuidArray",
+        "UuidArray",
+        {
+          "Custom": {
+            "name": "vector[]",
+            "kind": {
+              "Array": {
+                "Custom": {
+                  "name": "vector",
+                  "kind": "Simple"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "7fe64d28bd5667501aab7f9fea6c7154431e63b75645405f1f6874da9706f86d"
+}

@@ -1,0 +1,67 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n  id AS message_id,\n  body,\n  audience,\n  created_at\nFROM\n  ed_api.corpora\nWHERE\n  user_id = $1\n  AND ($2 = '' OR audience = $2)\nORDER BY created_at DESC\nLIMIT $3\nOFFSET $4;\n",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "message_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ed_api.corpora",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "body",
+        "type_info": "Bytea",
+        "origin": {
+          "Table": {
+            "table": "ed_api.corpora",
+            "name": "body"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "audience",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "ed_api.corpora",
+            "name": "audience"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "ed_api.corpora",
+            "name": "created_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "453a90693a2e36dfa3c66917236084fbe19ff880c480ea4ec95e36ca5b24f646"
+}

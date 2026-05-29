@@ -1,0 +1,9 @@
+(melange.emit
+ (target app)
+ (libraries reason-react melange.dom)
+ (preprocess
+  (pps reason-react-ppx melange.ppx))
+ (module_systems es6))
+
+(include_subdirs unqualified)
+

@@ -1,0 +1,7 @@
+[package]
+name = "ed-oauth"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+oauth2 = { workspace = true }

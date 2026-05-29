@@ -1,0 +1,45 @@
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem 2rem;
+  background: #1f2937;
+  color: #f9fafb;
+  border-bottom: 1px solid #111827;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-right: auto;
+  letter-spacing: 0.02em;
+}
+
+.link {
+  background: none;
+  border: none;
+  color: #e5e7eb;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.link:hover:not(.disabled) {
+  background: #374151;
+}
+
+.active {
+  background: #2563eb;
+  color: white;
+}
+
+.active:hover {
+  background: #1d4ed8 !important;
+}
+
+.disabled {
+  color: #6b7280;
+  cursor: not-allowed;
+}

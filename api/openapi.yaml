@@ -1,0 +1,566 @@
+openapi: 3.1.0
+info:
+  title: ed API
+  version: 0.1.0
+
+paths:
+  /data/{user_id}:
+    get:
+      summary: List stored corpus messages
+      description: Returns the parsed messages extracted from the corpus.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: audience
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Audience'
+          description: Filter by message audience
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Paginated list of corpus messages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageList'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      summary: Ingest a corpus of text
+      description: >
+        Accepts raw text, parses it into individual messages, computes a style
+        fingerprint, embeds each message, and persists everything to Postgres.
+        Idempotent — re-uploading replaces the existing corpus.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CorpusUpload'
+      responses:
+        '200':
+          description: Corpus successfully ingested
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestResult'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Delete the stored corpus
+      description: Removes all messages, embeddings, and the style fingerprint.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Corpus deleted
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /data/{user_id}/fingerprint:
+    get:
+      summary: Retrieve the style fingerprint
+      description: Returns the analyzed style dimensions extracted from the corpus.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Style fingerprint
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StyleFingerprint'
+        '404':
+          description: No corpus has been ingested yet
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /simulate/{user_id}:
+    post:
+      summary: Generate text matching the corpus voice
+      description: >
+        Given a prompt and optional context, retrieves similar corpus messages
+        via vector search, assembles a prompt, calls the Claude API to generate
+        text in the corpus author's voice, scores the output against the style
+        fingerprint, and persists the result.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateRequest'
+      responses:
+        '200':
+          description: Generated text with supporting context and confidence score
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateResponse'
+        '404':
+          description: No corpus has been ingested yet
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    get:
+      summary: List past generations
+      description: >
+        Returns persisted generation results, newest first. Each entry includes
+        the original prompt, generated text, confidence score, and metadata.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Paginated list of past generations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryList'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /simulate/{user_id}/simulations/{simulation_id}:
+    get:
+      summary: Retrieve a single past generation
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: simulation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: A single persisted generation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulationEntry'
+        '404':
+          description: No generation found with that ID
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Delete a single past generation
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: simulation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Generation deleted
+        '404':
+          description: No generation found with that ID
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  schemas:
+    CorpusDelete:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User to remove data for.
+
+    CorpusUpload:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          description: Raw corpus text — emails, Slack messages, texts, etc.
+          minLength: 1
+        audience_hint:
+          $ref: '#/components/schemas/Audience'
+          description: >
+            If all text is from one audience, provide a hint. Otherwise the
+            parser will attempt to detect audience per message.
+
+    Audience:
+      type: string
+      enum:
+        - email
+        - slack
+        - sms
+        - unknown
+
+    IngestResult:
+      type: object
+      required:
+        - message_count
+        - embedding_count
+        - fingerprint
+      properties:
+        message_count:
+          type: integer
+          description: Number of messages parsed from the corpus
+        embedding_count:
+          type: integer
+          description: Number of embeddings successfully stored
+        fingerprint:
+          $ref: '#/components/schemas/StyleFingerprint'
+
+    StyleFingerprint:
+      type: object
+      required:
+        - formality_score
+        - avg_sentence_length
+        - sentence_length_variance
+        - exclamation_ratio
+        - ellipsis_ratio
+        - emoji_frequency
+        - contraction_ratio
+        - hedging_ratio
+        - common_openers
+        - common_closers
+        - message_count
+      properties:
+        formality_score:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: 0 = very casual, 1 = very formal
+        avg_sentence_length:
+          type: number
+          format: float
+          description: Mean word count per sentence
+        sentence_length_variance:
+          type: number
+          format: float
+        exclamation_ratio:
+          type: number
+          format: float
+          description: Exclamation marks per sentence
+        ellipsis_ratio:
+          type: number
+          format: float
+          description: Ellipses per sentence
+        emoji_frequency:
+          type: number
+          format: float
+          description: Emoji per message
+        contraction_ratio:
+          type: number
+          format: float
+          description: Proportion of words that are contractions
+        hedging_ratio:
+          type: number
+          format: float
+          description: >
+            Proportion of sentences containing hedging language
+            (just, maybe, I think, kind of, etc.)
+        common_openers:
+          type: array
+          items:
+            type: string
+          description: Most frequent message-opening phrases
+        common_closers:
+          type: array
+          items:
+            type: string
+          description: Most frequent sign-off phrases
+        message_count:
+          type: integer
+          description: Number of messages this fingerprint was derived from
+
+    GenerateRequest:
+      type: object
+      required:
+        - prompt
+      properties:
+        prompt:
+          type: string
+          description: >
+            Describes the text to generate, e.g. "write a follow-up email
+            to a recruiter after a first-round interview"
+          minLength: 1
+        audience:
+          $ref: '#/components/schemas/Audience'
+          description: >
+            Preferred output audience. Influences which corpus examples are
+            retrieved and how the prompt is framed.
+        retrieval_count:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 4
+          description: Number of similar corpus messages to retrieve as few-shot examples
+        nudge:
+          type: string
+          description: >
+            Optional freeform correction appended to the generation prompt,
+            e.g. "make it shorter" or "less formal"
+
+    GenerateResponse:
+      type: object
+      required:
+        - generated_text
+        - retrieved_examples
+        - fingerprint_used
+        - confidence
+      properties:
+        generated_text:
+          type: string
+        retrieved_examples:
+          type: array
+          items:
+            $ref: '#/components/schemas/RetrievedMessage'
+          description: The corpus messages used as few-shot examples
+        fingerprint_used:
+          $ref: '#/components/schemas/StyleFingerprint'
+          description: The fingerprint included in the generation prompt
+        confidence:
+          $ref: '#/components/schemas/ConfidenceScore'
+
+    ConfidenceScore:
+      type: object
+      required:
+        - overall
+        - dimensions
+      properties:
+        overall:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Aggregate match score across all style dimensions
+        dimensions:
+          type: array
+          items:
+            $ref: '#/components/schemas/DimensionScore'
+          description: Per-dimension breakdown of how well the output matched the corpus
+
+    DimensionScore:
+      type: object
+      required:
+        - dimension
+        - corpus_value
+        - generated_value
+        - score
+      properties:
+        dimension:
+          type: string
+          description: >
+            Name of the style dimension, e.g. "formality_score",
+            "avg_sentence_length", "exclamation_ratio"
+        corpus_value:
+          type: number
+          format: float
+          description: The value measured from the corpus fingerprint
+        generated_value:
+          type: number
+          format: float
+          description: The value measured from the generated text
+        score:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: How closely the generated value matches the corpus value for this dimension
+
+    RetrievedMessage:
+      type: object
+      required:
+        - text
+        - audience
+        - similarity_score
+      properties:
+        text:
+          type: string
+        audience:
+          $ref: '#/components/schemas/Audience'
+        similarity_score:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+
+    HistoryList:
+      type: object
+      required:
+        - entries
+        - total
+        - limit
+        - offset
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/SimulationEntry'
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    SimulationEntry:
+      type: object
+      required:
+        - simulation_id
+        - prompt
+        - audience
+        - created_at
+        - result
+      properties:
+        simulation_id:
+          type: string
+          format: uuid
+        prompt:
+          type: string
+        audience:
+          $ref: '#/components/schemas/Audience'
+        nudge:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        result:
+          $ref: '#/components/schemas/GenerateResponse'
+
+    MessageList:
+      type: object
+      required:
+        - messages
+        - total
+        - limit
+        - offset
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/StoredMessage'
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    StoredMessage:
+      type: object
+      required:
+        - message_id
+        - text
+        - audience
+      properties:
+        message_id:
+          type: string
+          format: uuid
+        text:
+          type: string
+        audience:
+          $ref: '#/components/schemas/Audience'
+
+    ErrorBody:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+
+  responses:
+    UnprocessableEntity:
+      description: Request body failed validation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'

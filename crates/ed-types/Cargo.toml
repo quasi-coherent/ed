@@ -1,0 +1,9 @@
+[package]
+name = "ed-types"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+ed-axum = { workspace = true, default-features = false }
+unic-emoji-char = "0.9"

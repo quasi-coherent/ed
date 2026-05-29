@@ -1,0 +1,15 @@
+[package]
+name = "ed-db"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+chrono = { workspace = true }
+futures = { workspace = true }
+log = { workspace = true }
+pgvector = { workspace = true, features = ["postgres", "sqlx"] }
+serde_json = { workspace = true }
+sqlx = { workspace = true, features = ["chrono", "json", "uuid"] }
+url = { workspace = true }
+uuid = { workspace = true }

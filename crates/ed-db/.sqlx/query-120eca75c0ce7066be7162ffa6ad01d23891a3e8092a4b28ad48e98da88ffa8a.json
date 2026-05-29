@@ -1,0 +1,66 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n  c.id AS message_id,\n  c.body,\n  c.audience,\n  (1 - (e.vector <=> $1::vector))::real AS \"similarity!\"\nFROM\n  ed_api.corpora c\n  JOIN ed_api.embeddings e\n  ON c.id = e.message_id\nWHERE\n  c.user_id = $2\nORDER BY\n  e.vector <=> $1::vector\nLIMIT $3;\n",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "message_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ed_api.corpora",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "body",
+        "type_info": "Bytea",
+        "origin": {
+          "Table": {
+            "table": "ed_api.corpora",
+            "name": "body"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "audience",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "ed_api.corpora",
+            "name": "audience"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "similarity!",
+        "type_info": "Float4",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "vector",
+            "kind": "Simple"
+          }
+        },
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "120eca75c0ce7066be7162ffa6ad01d23891a3e8092a4b28ad48e98da88ffa8a"
+}
