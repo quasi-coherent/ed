@@ -7,7 +7,7 @@
     ./nixos
     ./packages
 
-    # ./checks.nix
+    ./checks.nix
     ./shells.nix
   ];
 

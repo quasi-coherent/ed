@@ -23,9 +23,17 @@ let
         ];
       };
 
+      workspace = crane.crateNameFromCargoToml { inherit src; };
+
       cargoArtifacts = pkgs.callPackage ./workspace-dependencies.nix { inherit crane src; };
 
       codegen = openapiYaml: pkgs.callPackage ./codegen.nix { inherit openapiYaml; };
+
+      commonArgs = {
+        inherit (workspace) pname version;
+        inherit cargoArtifacts crane src;
+        strictDeps = true;
+      };
     in
     {
       _module.args = {
@@ -33,10 +41,11 @@ let
           cargoArtifacts
           crane
           codegen
+          commonArgs
           rustTools
+          src
+          workspace
           ;
-
-        fullSource = src;
       };
     };
 in

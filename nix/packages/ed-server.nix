@@ -1,29 +1,21 @@
 {
+  commonArgs,
   crane,
   frontend,
-  lib,
   makeWrapper,
-  stdenv,
 }:
 let
-  src = crane.cleanCargoSource ../..;
-  workspace = crane.crateNameFromCargoToml { inherit src; };
-
-  cargoExtraArgs = "--bin ed-serve";
-
-  # Deps-only build scoped to the ed-serve binary so the broken sibling
-  # crates (ed-db, ed-axum) aren't pulled in.
-  cargoArtifacts = crane.buildDepsOnly {
-    inherit (workspace) pname version;
-    inherit src cargoExtraArgs;
-    pnameSuffix = "-serve-deps";
-    strictDeps = true;
-  };
-
   serveBin = crane.buildPackage {
-    inherit (workspace) pname version;
-    inherit src cargoArtifacts cargoExtraArgs;
-    strictDeps = true;
+    inherit (commonArgs)
+      cargoArtifacts
+      crane
+      src
+      version
+      strictDeps
+      ;
+
+    pname = "ed-server";
+    cargoExtraArgs = "--bin ed-serve";
     doCheck = false;
     nativeBuildInputs = [ makeWrapper ];
     postInstall = ''

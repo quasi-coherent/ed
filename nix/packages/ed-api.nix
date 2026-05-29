@@ -1,11 +1,13 @@
-{ cargoArtifacts, crane }:
-let
-  src = crane.cleanCargoSource ../..;
-
-  workspace = crane.crateNameFromCargoToml { inherit src; };
-in
+{
+  commonArgs,
+  crane,
+}:
 crane.buildPackage {
-  inherit (workspace) pname version;
-  inherit cargoArtifacts src;
-  strictDeps = true;
+  inherit (commonArgs)
+    cargoArtifacts
+    src
+    pname
+    version
+    strictDeps
+    ;
 }

@@ -9,8 +9,8 @@ This repository houses a Rust backend, spread over several [crates](./crates), a
 
 The openapi specification can be found [here](./api/openapi.yaml).
 
-It's also nix-ified (mostly), so all of what you see is a nix flake output and should build on any
-operating system, as long as you have nix installed, which I guess is the big caveat.
+It's also nix-ified (mostly), so all of what you see is a [nix flake](./nix) output and should build on any
+operating system, as long as you have nix installed, which I guess is maybe not all that likely.
 
 #### Spike
 

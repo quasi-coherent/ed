@@ -2,8 +2,8 @@
 let
   perSystem =
     {
-      cargoArtifacts,
       codegen,
+      commonArgs,
       crane,
       pkgs,
       ...
@@ -16,9 +16,9 @@ let
       openapiCodegen = codegen openapiYaml;
 
       frontend = pkgs.callPackage ./frontend.nix { };
-      ed-api = pkgs.callPackage ./ed-api.nix { inherit cargoArtifacts crane; };
-      ed-migratedb = pkgs.callPackage ./ed-migratedb.nix { inherit ed-api; };
-      ed-server = pkgs.callPackage ./ed-server.nix { inherit crane frontend; };
+      ed-api = pkgs.callPackage ./ed-api.nix { inherit commonArgs crane; };
+      ed-migratedb = pkgs.callPackage ./ed-migratedb.nix { inherit commonArgs crane; };
+      ed-server = pkgs.callPackage ./ed-server.nix { inherit commonArgs crane; };
     in
     {
       packages = {

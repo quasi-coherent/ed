@@ -1,9 +1,14 @@
 {
-  ed-api,
-  lib,
-  writeShellApplication,
+  commonArgs,
+  crane,
 }:
-writeShellApplication {
-  name = "ed-migratedb";
-  text = "${lib.getBin ed-api}/bin/ed-migratedb migrate apply-all";
+crane.buildPackage {
+  inherit (commonArgs)
+    cargoArtifacts
+    src
+    strictDeps
+    version
+    ;
+  pname = "ed-migratedb";
+  cargoExtraArgs = "-p ed-migratedb --bin ed-migratedb";
 }
