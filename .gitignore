@@ -10,4 +10,4 @@ result
 !.envrc
 !.github
 !.gitkeep
-!crates/ed-db/.sqlx
+!.sqlx

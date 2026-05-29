@@ -1,23 +1,20 @@
 { ... }:
 {
   perSystem =
-    {
-      cargoArtifacts,
-      crane,
-      fullSource,
-      ...
-    }:
+    { commonArgs, ... }:
     let
-      workspace = crane.crateNameFromCargoToml { src = fullSource; };
+      inherit (commonArgs) crane;
     in
     {
       checks = {
         cargo-clippy = crane.cargoClippy {
-          inherit (workspace) pname version;
-          inherit cargoArtifacts;
-          # Targeting all of the workspace needs the wider fileset.
-          src = fullSource;
-          strictDeps = true;
+          inherit (commonArgs)
+            pname
+            version
+            cargoArtifacts
+            src
+            strictDeps
+            ;
           cargoClippyExtraArgs = "--all-targets -- -Dwarnings";
         };
       };
