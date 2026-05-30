@@ -11,3 +11,4 @@ result
 !.github
 !.gitkeep
 !.sqlx
+!.sops.yaml

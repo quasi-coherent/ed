@@ -36,6 +36,7 @@
           typos.enable = true;
         };
         settings.formatter = {
+          typos.excludes = [ "nix/nixos/ed.secrets.yaml" ];
           "refmt" = {
             command = "${pkgs.bash}/bin/bash";
             options = [

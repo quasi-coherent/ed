@@ -1,15 +1,13 @@
-//! Serves the bundled frontend `dist/` and the JSON API.
-
-use std::{net::SocketAddr, path::PathBuf, process::ExitCode};
-
 use anyhow::Context as _;
 use axum::Router;
 use ed_api::{AppState, EdApiSchema};
 use ed_clients::{EdClientService, EdClientServiceImpl, EdHttpClient};
 use ed_db::EdDbConfig;
-use ed_migratedb::EdApiMigrations;
-use tern::Runner;
-use tower_http::{services::ServeDir, trace::TraceLayer};
+use std::net::SocketAddr;
+use std::path::PathBuf;
+use std::process::ExitCode;
+use tower_http::services::ServeDir;
+use tower_http::trace::TraceLayer;
 
 #[tokio::main]
 async fn main() -> ExitCode {
@@ -34,14 +32,6 @@ async fn run() -> anyhow::Result<()> {
         .try_new_client(&database_url)
         .await
         .context("connecting to database")?;
-
-    let migrations = EdApiMigrations::new(&database_url)
-        .await
-        .context("init migrations runner")?;
-    Runner::new(migrations)
-        .run_apply_all(false)
-        .await
-        .context("applying migrations")?;
 
     let schema = EdApiSchema::new(db_client);
 

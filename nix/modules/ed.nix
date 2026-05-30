@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  ed-migratedb,
   ed-server,
   ...
 }:
@@ -75,21 +76,33 @@ in
       ];
     };
 
-    # The pgvector extension must be created in the target database before
-    # ed-migratedb runs, so the V*__*.sql migrations that reference `vector`
-    # can succeed.
-    systemd.services.postgresql.postStart = lib.mkAfter ''
-      $PSQL -d ${cfg.database} -c 'CREATE EXTENSION IF NOT EXISTS vector;'
-    '';
-
-    systemd.services.ed-serve = {
-      description = "ed-serve (axum API + frontend)";
+    systemd.services.ed-migratedb = {
+      description = "ed-migratedb";
       wantedBy = [ "multi-user.target" ];
+      after = [ "postgresql.service" ];
+      requires = [ "postgresql.service" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        User = "postgres";
+        ExecStart = "${lib.getExe ed-migratedb}";
+        Environment = "DATABASE_URL=postgres:///${cfg.database}?host=/run/postgresql";
+      };
+    };
+
+    systemd.services.ed-server = {
+      description = "ed-server";
+      wantedBy = [ "multi-user.target" ];
+
       after = [
         "postgresql.service"
+        "ed-migratedb.service"
         "network.target"
       ];
-      requires = [ "postgresql.service" ];
+      requires = [
+        "postgresql.service"
+        "ed-migratedb.service"
+      ];
 
       environment = {
         DATABASE_URL = "postgres:///${cfg.database}?host=/run/postgresql&user=${cfg.user}";

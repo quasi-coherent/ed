@@ -23,24 +23,25 @@
         packages = [
           fmtt
           pkgs.cachix
-          pkgs.ocamlPackages.ocaml
-          pkgs.ocamlPackages.findlib
-          pkgs.ocamlPackages.dune
           pkgs.importNpmLock.hooks.linkNodeModulesHook
           pkgs.just
-          pkgs.ocamlPackages.melange
-          pkgs.nixd
           pkgs.nix-output-monitor
+          pkgs.nixd
           pkgs.nodejs
+          pkgs.ocamlPackages.dune
+          pkgs.ocamlPackages.findlib
+          pkgs.ocamlPackages.melange
+          pkgs.ocamlPackages.ocaml
           pkgs.ocamlPackages.ppxlib
+          pkgs.ocamlPackages.reason
           pkgs.ocamlPackages.reason-react
           pkgs.ocamlPackages.reason-react-ppx
-          pkgs.ocamlPackages.reason
           pkgs.sqlx-cli
+          rustTools.toolchain
+          self'.packages.ed-lima
           self'.packages.ed-migratedb
           self'.packages.openapiCodegen
           self'.packages.sqlx-prepare
-          rustTools.toolchain
         ];
         npmDeps =
           with pkgs;

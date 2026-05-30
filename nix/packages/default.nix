@@ -18,6 +18,7 @@ let
 
       frontend = pkgs.callPackage ./frontend.nix { };
       ed-api = pkgs.callPackage ./ed-api.nix { inherit commonArgs crane; };
+      ed-lima = pkgs.callPackage ./ed-lima.nix { };
       ed-migratedb = pkgs.callPackage ./ed-migratedb.nix { inherit commonArgs crane; };
       ed-server = pkgs.callPackage ./ed-server.nix { inherit commonArgs crane frontend; };
 
@@ -28,6 +29,7 @@ let
         inherit
           openapiCodegen
           ed-api
+          ed-lima
           ed-migratedb
           ed-server
           frontend

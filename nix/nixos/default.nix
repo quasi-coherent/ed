@@ -12,6 +12,7 @@
           specialArgs = {
             inherit inputs;
             ed-server = self.packages.${system}.ed-server;
+            ed-migratedb = self.packages.${system}.ed-migratedb;
           };
           modules = [
             inputs.sops.nixosModules.sops

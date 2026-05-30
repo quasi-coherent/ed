@@ -11,4 +11,5 @@ crane.buildPackage {
     ;
   pname = "ed-migratedb";
   cargoExtraArgs = "-p ed-migratedb --bin ed-migratedb";
+  meta.mainProgram = "ed-migratedb";
 }
