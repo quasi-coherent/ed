@@ -28,7 +28,7 @@ async fn run() -> anyhow::Result<()> {
     require_env("OPENAI_API_KEY")?;
     require_env("ANTHROPIC_API_KEY")?;
 
-    let db_client = EdDbConfig::new("ed-serve")
+    let db_client = EdDbConfig::new("ed-server")
         .try_new_client(&database_url)
         .await
         .context("connecting to database")?;
@@ -63,7 +63,7 @@ async fn run() -> anyhow::Result<()> {
     tracing::info!(
         %addr,
         frontend_dir = %frontend_dir.display(),
-        "ed-serve starting"
+        "ed-server starting"
     );
 
     let listener = tokio::net::TcpListener::bind(addr)

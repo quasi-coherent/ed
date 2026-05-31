@@ -26,6 +26,11 @@
   # the guest firewall beyond what `services.ed.openFirewall` does.
   services.ed.hostName = lib.mkDefault "ed-lima";
 
+  # Plaintext env file populated by `ed-lima source` from the host's env.
+  # Production (ed-host) uses sops-rendered /run/secrets/ed-serve instead.
+  services.ed.environmentFile = "/var/lib/ed/env";
+  systemd.tmpfiles.rules = [ "d /var/lib/ed 0750 ed ed -" ];
+
   boot = {
     kernelParams = [ "console=tty0" ];
     kernelPackages = pkgs.linuxPackages_latest;

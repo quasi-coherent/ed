@@ -10,12 +10,12 @@ let
 in
 {
   options.services.ed = {
-    enable = lib.mkEnableOption "ed-serve (axum API + bundled frontend)";
+    enable = lib.mkEnableOption "ed-server (axum API + bundled frontend)";
 
     user = lib.mkOption {
       type = lib.types.str;
       default = "ed";
-      description = "Unix user that runs ed-serve and owns the postgres role.";
+      description = "Unix user that runs ed-server and owns the postgres role.";
     };
 
     database = lib.mkOption {
@@ -48,10 +48,10 @@ in
     environmentFile = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
       default = null;
-      example = "/run/secrets/ed-serve";
+      example = "/run/secrets/ed-server";
       description = ''
         Path to an EnvironmentFile holding OPENAI_API_KEY and ANTHROPIC_API_KEY.
-        Typically the sops secret path: config.sops.secrets."ed-serve".path.
+        Typically the sops secret path: config.sops.secrets."ed-server".path.
       '';
     };
   };
@@ -60,7 +60,7 @@ in
     users.users.${cfg.user} = {
       isSystemUser = true;
       group = cfg.user;
-      description = "ed-serve service user";
+      description = "ed-server service user";
     };
     users.groups.${cfg.user} = { };
 

@@ -11,5 +11,10 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  ed:
+    image: ed:latest
+    container_name: ed
+
+
 volumes:
   pgdata:

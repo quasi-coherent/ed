@@ -2,102 +2,41 @@
 
 > A tone and style simulator application.
 
-## Overview
+An [API](./api/openapi.yaml) for uploading a corpus and generating text in the "tone" and "style"
+extracted from it.  The API is [implemented](./crates/rust-axum) in Rust using `axum` and has a
+[frontend](./frontend) UI served statically from the `axum` service, written in ReasonML.
 
-This repository houses a Rust backend, spread over several [crates](./crates), and a ReasonML
-[frontend](./frontend) that uses bindings to React and builds static assets served by the axum app.
+The write-up of the project is [here](./docs/writeup.md).
 
-The openapi specification can be found [here](./api/openapi.yaml).
+## Usage
 
-It's also nix-ified (mostly), so all of what you see is a [nix flake](./nix) output and should build on any
-operating system, as long as you have nix installed, which I guess is maybe not all that likely.
+The default devShell provides a way to deploy the app locally in a VM that is not complicated if you
+already have nix.
 
-#### Spike
+First run
 
-I suppose the whole nix flake of it would be my spike, but it's not quite complete... My goal was to
-define `nixosConfigurations` (a linux distribution as a nix derivation), which would be the local dev
-environment via something called [lima](https://lima-vm.io/docs/), but also the exact same configuration
-would define the "production" environment.
-
-There's also the suggestion in not-quite-complete nix configs that this would manage storing API keys and
-database passwords, owned by nix as well, using a framework called sops that I personally use for all my local
-secret storage needs.  Since a nix flake is a pure function, the secrets have to be checked into version control
-in some form or fashion, and sops does this by storing a public fingerprint of them alongside a public age key
-with some scope for what secrets it can decrypt (which happens ephemerally so no vars sourced from env stick around).
-
-One advantage of this is that the age decryption keys can be distributed, scoped by user.  CD steps can pull from a
-real thing (AWS SecretsManager or such) and populate the public version and deploy.
-
-In the end what was supposed to happen is that the same config and nearly the same command deploys the
-app+runtime dependencies+infra dependencies to both a VM locally and the remote system for a production environment.
-This was also going to include an OpenTelemetry collector defined in the nixos config, which I'd be able to see at
-some endpoint I'd exposed for myself, but boy did I not get to that.
-
-Really I was unable to find a place that hosts and supports this pattern. Started using personal AWS account; got too late.
-
-### Architecture
-
-As someone who is pretty much brand new to what's _actually_ happening start-to-finish here, I leaned on Claude to
-guide me through what's going on and what a full flow might look like.  They wanted a cloud solution for the vector DB,
-but I thought that was just one random API to learn too far.  So I chose postgres and the pgvector extension, which can
-calculate the cosine similarity you need to find the most alike parts of the corpus to turn around and give to an LLM.
-This was pretty much the only deviation from Claude's higher level vision.
-
-The flow ended up being:
-
+```console
+> $ ed-lima start
 ```
-   Ingest (POST /data/{user_id})
-   ─────────────────────────────
-        corpus text
-             │
-             ▼
-   ┌───────────────────┐      ┌─────────────────────┐
-   │  ed-axum (API)    │─────▶│  OpenAI embeddings  │
-   └───────────────────┘      └─────────────────────┘
-             │                          │
-             │   chunks + vectors  ◀────┘
-             ▼
-   ┌───────────────────┐
-   │ postgres+pgvector │
-   └───────────────────┘
+to start the VM.  Next, the app needs developer API keys to function.  Run
 
-
-   Simulate (POST /simulate/{user_id})
-   ───────────────────────────────────
-        prompt
-          │
-          ▼
-   ┌───────────────────┐      ┌─────────────────────┐
-   │  ed-axum (API)    │─────▶│  OpenAI embeddings  │ (embed prompt)
-   └───────────────────┘      └─────────────────────┘
-          │   ▲                       │
-          │   │ top-k chunks   ◀──────┘
-          ▼   │  (cosine sim)
-   ┌───────────────────┐
-   │ postgres+pgvector │
-   └───────────────────┘
-          │
-          │  prompt + retrieved style exemplars
-          ▼
-   ┌───────────────────┐
-   │   Claude (LLM)    │──▶ generated text in the user's "voice"
-   └───────────────────┘
+```console
+> $ ed-lima source --env OPENAI_API_KEY --env ANTHROPIC_API_KEY
 ```
 
-#### Style "fingerprint"
+to source these from your environment, then direct your browser to [localhost:8080](https://localhost:8080).
+See the help for other commands: `ed-lima --help`.
 
-The calculation we relied on is this so-called "fingerprint" which accumulates ratios, counts, and running
-"gauges" of a number of dimensions: sentence length, frequency of certain punctuation, and so on.
+If without nix, but with desire to run greater than desire to not have nix even temporarily, get a nix
+[installer][lix], follow those instructions, then go up and do these instructions.
 
-It was hard to define an invariant for what style and tone even is.  Early iterations were either
-totally uninspiring and/or bad.  I think this is still my biggest open question--how to evaluate this confidently.
-Calculating it on the generated response from the Anthropic message API and comparing with the input examples
-(the closest in cosine distance) seems like the most natural but I wasn't able to get a strong indicator of how
-well it tracked in the time allotted.
+Afterwards, you have two options: You run `/nix/lix-installer uninstall` -- the story ends, you wake up in
+your bed and believe whatever you want to believe.  You run `nix run nixpkgs#nix-tour` -- you stay in
+Wonderland and see how deep the rabbit hole goes.  Remember: all that's offered is the truth, nothing  more.
 
-### Etymology
+## Etymology
 
-The purpose of the app is mimicry of human language.  Exotic birds are sometimes known for that.
+The purpose of the app is mimicry of written human language.  Exotic birds are sometimes known for that.
 When I was 7 years old, my parents bought me an [umbrella cockatoo][cockatoo], against all better
 judgement.  This is a very serious bird for a 7 year old.  I still can't believe my parents did this.
 
@@ -117,4 +56,5 @@ out there somewhere in the Seattle suburbs.  Of course I know that's not true.
 
 Wherever he is though, I hope he knows I love him back.
 
+[lix]: https://lix.systems/install
 [cockatoo]: https://en.wikipedia.org/wiki/White_cockatoo

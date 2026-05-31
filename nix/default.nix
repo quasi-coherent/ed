@@ -2,11 +2,9 @@
 {
   imports = [
     inputs.treefmt-nix.flakeModule
-
     ./lib
     ./nixos
     ./packages
-
     ./checks.nix
     ./shells.nix
   ];
@@ -33,10 +31,12 @@
           rustfmt.enable = true;
           nixfmt.enable = true;
           taplo.enable = true;
-          typos.enable = true;
+          typos = {
+            enable = true;
+            excludes = [ "nix/nixos/ed.secrets.yaml" ];
+          };
         };
         settings.formatter = {
-          typos.excludes = [ "nix/nixos/ed.secrets.yaml" ];
           "refmt" = {
             command = "${pkgs.bash}/bin/bash";
             options = [

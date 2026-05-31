@@ -12,7 +12,7 @@ version.workspace = true
 edition.workspace = true
 
 [[bin]]
-name = "ed-serve"
+name = "ed-server"
 path = "bin/serve.rs"
 
 [dependencies]

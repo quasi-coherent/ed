@@ -1,6 +1,8 @@
 {
   lima,
+  nix,
   writeShellApplication,
+  edLimaTopLevel,
 }:
 let
   limaConfig = ../../lima/nixos.yaml;
@@ -8,52 +10,90 @@ let
 in
 writeShellApplication {
   name = "ed-lima";
-  runtimeInputs = [ lima ];
+  runtimeInputs = [
+    lima
+    nix
+  ];
   text = ''
+    export LIMA_INSTANCE="${instance}"
     config="${limaConfig}"
-    name="${instance}"
+    toplevel="${edLimaTopLevel}"
 
-    cmd="''${1:-start}"
-    if [ $# -gt 0 ]; then shift; fi
+    usage() {
+      cat <<EOF
+    ed-lima — limactl wrapper for the ed nixos-lima VM (instance: ${instance})
 
-    case "$cmd" in
+    Custom commands:
+      start                      Create the VM and activate the baked-in toplevel,
+                                 or resume it if it already exists.
+      rebuild                    Push the current flake's toplevel to the VM and
+                                 switch to it. Re-derive via \`nix build .#ed-lima\`
+                                 first to pick up flake edits.
+      source --env KEY [...]     Read each KEY from the host env, write
+                                 /var/lib/ed/env on the VM, restart ed-server.
+      -h, --help, help           Show this message.
+
+    Anything else is forwarded to limactl with LIMA_INSTANCE=${instance}.
+    EOF
+    }
+
+    push_and_switch() {
+      NIX_SSHOPTS="-F $HOME/.lima/${instance}/ssh.config" \
+        nix copy --to "ssh-ng://lima-${instance}" "$toplevel"
+      limactl shell sudo "$toplevel/bin/switch-to-configuration" switch
+    }
+
+    case "''${1:-start}" in
+      -h|--help|help)
+        usage
+        ;;
       start)
-        if limactl list --quiet | grep -qx "$name"; then
-          exec limactl start "$name" "$@"
-        else
-          exec limactl start --name="$name" "$config" "$@"
+        shift || true
+        if limactl list --quiet | grep -qx "${instance}"; then
+          exec limactl start --tty=false "$@"
         fi
-        ;;
-      shell|ssh)
-        exec limactl shell "$name" "$@"
-        ;;
-      install-key)
-        if [ $# -lt 1 ]; then
-          echo "usage: ed-lima install-key <host-path-to-age-key>" >&2
-          exit 2
-        fi
-        key="$1"
-        if [ ! -r "$key" ]; then
-          echo "ed-lima: cannot read $key" >&2
-          exit 1
-        fi
-        exec limactl shell "$name" sudo install -D -m 0400 -o root -g root \
-          /dev/stdin /var/lib/sops-nix/age/keys.txt < "$key"
+        limactl start --tty=false --name="${instance}" "$config" "$@"
+        push_and_switch
         ;;
       rebuild)
-        # Pull the flake from the host's repo (mounted read-only at ~) and
-        # switch the VM to the ed-lima nixosConfiguration matching its arch.
-        exec limactl shell "$name" sudo nixos-rebuild switch \
-          --flake "${toString ../..}#ed-lima-$(limactl shell "$name" uname -m | sed 's/arm64/aarch64/')" \
-          "$@"
+        push_and_switch
+        ;;
+      source)
+        shift
+        vars=()
+        while [ "''${1:-}" = "--env" ]; do
+          shift
+          if [ $# -lt 1 ]; then
+            echo "usage: ed-lima source --env KEY [--env KEY ...]" >&2
+            exit 2
+          fi
+          vars+=("$1")
+          shift
+        done
+        if [ ''${#vars[@]} -eq 0 ]; then
+          echo "usage: ed-lima source --env KEY [--env KEY ...]" >&2
+          exit 2
+        fi
+        payload=""
+        for v in "''${vars[@]}"; do
+          val="''${!v-}"
+          if [ -z "$val" ]; then
+            echo "ed-lima: \$$v is unset or empty in host environment" >&2
+            exit 1
+          fi
+          payload="$payload$v=$val"$'\n'
+        done
+        printf '%s' "$payload" | limactl shell sudo install -D \
+          -m 0400 -o ed -g ed /dev/stdin /var/lib/ed/env
+        exec limactl shell sudo systemctl restart ed-server
         ;;
       *)
-        exec limactl "$cmd" "$@"
+        exec limactl "$@"
         ;;
     esac
   '';
   meta = {
-    description = "limactl wrapper pinned to the ed nixos-lima config";
+    description = "limactl wrapper pinned to the ed nixos-lima VM";
     mainProgram = "ed-lima";
     inherit (lima.meta) platforms;
   };

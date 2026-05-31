@@ -15,13 +15,8 @@
             ed-migratedb = self.packages.${system}.ed-migratedb;
           };
           modules = [
-            inputs.sops.nixosModules.sops
             ../modules/ed.nix
-            ./secrets.nix
-            {
-              services.ed.enable = true;
-              services.ed.environmentFile = "/run/secrets/ed-serve";
-            }
+            { services.ed.enable = true; }
           ]
           ++ modules;
         };
@@ -29,7 +24,12 @@
     {
       ed-host = mkSystem {
         system = "x86_64-linux";
-        modules = [ ./ed-host.nix ];
+        modules = [
+          inputs.sops.nixosModules.sops
+          ./secrets.nix
+          { services.ed.environmentFile = "/run/secrets/ed-server"; }
+          ./ed-host.nix
+        ];
       };
       ed-lima-aarch64 = mkSystem {
         system = "aarch64-linux";

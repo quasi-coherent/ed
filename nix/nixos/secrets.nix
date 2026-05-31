@@ -11,11 +11,11 @@
       "openai_api_key" = { };
     };
     templates = {
-      "ed-serve" = {
-        path = "/run/secrets/ed-serve";
+      "ed-server" = {
+        path = "/run/secrets/ed-server";
         owner = config.services.ed.user;
         mode = "0400";
-        restartUnits = [ "ed-serve.service" ];
+        restartUnits = [ "ed-server.service" ];
         content = ''
           ANTHROPIC_API_KEY=${config.sops.placeholder.anthropic_api_key}
           OPENAI_API_KEY=${config.sops.placeholder.openai_api_key}
