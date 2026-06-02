@@ -1,11 +1,15 @@
 { inputs, ... }:
 {
   imports = [
+    inputs.den.flakeModules.default
+    inputs.limavm.flakeModules.den
     inputs.treefmt-nix.flakeModule
-    ./lib
-    ./nixos
-    ./packages
+
+    (inputs.import-tree ./nixos)
+
     ./checks.nix
+    ./lib.nix
+    ./packages
     ./shells.nix
   ];
 
@@ -33,7 +37,7 @@
           taplo.enable = true;
           typos = {
             enable = true;
-            excludes = [ "nix/nixos/ed.secrets.yaml" ];
+            excludes = [ "ed.secrets.yaml" ];
           };
         };
         settings.formatter = {

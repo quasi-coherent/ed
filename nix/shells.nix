@@ -17,12 +17,10 @@
       devShells.default = pkgs.mkShell {
         dontDetectOcamlConflicts = true;
         RUST_SRC_PATH = "${rustTools.rust-src}/lib/rustlib/src/rust/library";
-        inputsFrom = [
-          self'.packages.openapiYaml
-        ];
         packages = [
           fmtt
           pkgs.cachix
+          pkgs.cloudflared
           pkgs.importNpmLock.hooks.linkNodeModulesHook
           pkgs.just
           pkgs.nix-output-monitor
@@ -38,9 +36,10 @@
           pkgs.ocamlPackages.reason-react-ppx
           pkgs.sqlx-cli
           rustTools.toolchain
-          self'.packages.ed-lima
+          self'.packages.ed-frontend
           self'.packages.ed-migratedb
-          self'.packages.openapiCodegen
+          self'.packages.ed-server
+          self'.packages.openapiGen
           self'.packages.sqlx-prepare
         ];
         npmDeps =

@@ -1,11 +1,11 @@
 {
+  buildPackage,
   commonArgs,
-  crane,
-  frontend,
+  ed-frontend,
   makeWrapper,
 }:
 let
-  serveBin = crane.buildPackage {
+  serveBin = buildPackage {
     inherit (commonArgs)
       cargoArtifacts
       src
@@ -19,7 +19,7 @@ let
     nativeBuildInputs = [ makeWrapper ];
     postInstall = ''
       mkdir -p $out/share/ed-frontend
-      cp -r --no-preserve=mode,ownership ${frontend}/. $out/share/ed-frontend/
+      cp -r --no-preserve=mode,ownership ${ed-frontend}/. $out/share/ed-frontend/
       wrapProgram $out/bin/ed-server \
         --set-default FRONTEND_DIR $out/share/ed-frontend
     '';

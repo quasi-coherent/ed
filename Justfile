@@ -10,6 +10,5 @@ openapi-gen:
 update-rs:
     nix flake update fenix
 
-docker-build:
-    nix build .#packages.{{system}}.ed-docker
-    docker load < result
+boot:
+    nix run .#ed-local

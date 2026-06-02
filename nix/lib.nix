@@ -5,7 +5,7 @@ let
     let
       inherit (pkgs) lib;
 
-      root = ../..;
+      root = ../.;
 
       # Latest build of the stable toolchain.
       rustTools = pkgs.fenix.stable;
@@ -17,21 +17,24 @@ let
         inherit root;
         fileset = lib.fileset.unions [
           (crane.fileset.commonCargoSources root)
-          ../../.sqlx
-          ../../crates/ed-migratedb/src/migrations
-          ../../crates/ed-db/src/sql
+          ../.sqlx
+          ../crates/ed-migratedb/src/migrations
+          ../crates/ed-db/src/sql
         ];
       };
 
       workspace = crane.crateNameFromCargoToml { inherit src; };
 
-      cargoArtifacts = pkgs.callPackage ./workspace-dependencies.nix {
+      # The goal of this derivation is to include everything in the workspace
+      # dependencies.  That way everything that is needed to build crates here
+      # gets hashed and added to the nix store, which you combine with a caching
+      # solution like cachix and the result is instant builds for anyone who can
+      # pull from the cache.
+      cargoArtifacts = crane.buildDepsOnly {
         inherit (workspace) pname version;
-        inherit crane src;
+        inherit src;
         strictDeps = true;
       };
-
-      codegen = openapiYaml: pkgs.callPackage ./codegen.nix { inherit openapiYaml; };
 
       commonArgs = {
         inherit (workspace) pname version;
@@ -42,9 +45,7 @@ let
     {
       _module.args = {
         inherit
-          cargoArtifacts
           crane
-          codegen
           commonArgs
           rustTools
           src
