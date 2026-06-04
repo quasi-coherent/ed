@@ -10,5 +10,5 @@ openapi-gen:
 update-rs:
     nix flake update fenix
 
-boot:
-    nix run .#ed-local
+boot *args:
+    nix run .#ed-local {{args}}

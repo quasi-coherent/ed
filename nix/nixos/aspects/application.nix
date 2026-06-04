@@ -1,77 +1,50 @@
-{ lib, ... }:
 {
-  # Bundle BE+FE+database.
+  lib,
+  ...
+}:
+{
+  # BE+FE
   den.aspects.application.nixos =
-    { self', ... }:
+    { config, self', ... }:
+    let
+      svc = config.systemd.services;
+    in
     {
-      services.postgresql = {
-        enable = true;
-        extensions = ps: [ ps.pgvector ];
-        ensureDatabases = [ "ed" ];
-        ensureUsers = [
-          {
-            name = "ed";
-            ensureDBOwnership = true;
-          }
+      systemd.services.ed-server = {
+        description = "ed-server";
+        wantedBy = [ "multi-user.target" ];
+
+        after = [
+          "${svc.postgresql.name}"
+          "${svc.ed-migratedb.name}"
+          "network.target"
         ];
-      };
+        requires = [
+          "${svc.postgresql.name}"
+          "${svc.ed-migratedb.name}"
+        ];
 
-      systemd.services = {
-        ed-migratedb = {
-          description = "ed-migratedb";
-          wantedBy = [ "multi-user.target" ];
-          after = [ "postgresql.service" ];
-          requires = [ "postgresql.service" ];
-          serviceConfig = {
-            Type = "oneshot";
-            RemainAfterExit = true;
-            User = "postgres";
-            ExecStart = "${lib.getExe self'.packages.ed-migratedb}";
-            Environment = "DATABASE_URL=postgres:///ed?host=/run/postgresql";
-          };
-        };
-
-        ed-server = {
-          description = "ed-server";
-          wantedBy = [ "multi-user.target" ];
-
-          after = [
-            "postgresql.service"
-            "ed-migratedb.service"
-            "network.target"
+        serviceConfig = {
+          Restart = "on-failure";
+          RestartSec = 5;
+          ExecStart = "${lib.getExe self'.packages.ed-server}";
+          # hardening
+          NoNewPrivileges = true;
+          ProtectSystem = "strict";
+          ProtectHome = true;
+          PrivateTmp = true;
+          PrivateDevices = true;
+          ProtectKernelTunables = true;
+          ProtectKernelModules = true;
+          ProtectControlGroups = true;
+          RestrictAddressFamilies = [
+            "AF_INET"
+            "AF_INET6"
+            "AF_UNIX"
           ];
-          requires = [
-            "postgresql.service"
-            "ed-migratedb.service"
-          ];
-
-          environment = {
-            DATABASE_URL = "postgres:///ed?host=/run/postgresql&user=ed";
-          };
-
-          serviceConfig = {
-            User = "ed";
-            Group = "users";
-            Restart = "on-failure";
-            RestartSec = 5;
-
-            # hardening
-            NoNewPrivileges = true;
-            ProtectSystem = "strict";
-            ProtectHome = true;
-            PrivateTmp = true;
-            PrivateDevices = true;
-            ProtectKernelTunables = true;
-            ProtectKernelModules = true;
-            ProtectControlGroups = true;
-            RestrictAddressFamilies = [
-              "AF_INET"
-              "AF_INET6"
-              "AF_UNIX"
-            ];
-            LockPersonality = true;
-          };
+          LockPersonality = true;
         };
       };
     };
+
 }

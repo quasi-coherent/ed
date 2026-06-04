@@ -1,6 +1,4 @@
 {
-  outputs = inputs: import ./. inputs;
-
   inputs = {
     crane.url = "github:ipetkov/crane";
     den.url = "github:denful/den";
@@ -12,7 +10,6 @@
       url = "github:hercules-ci/flake-parts";
       inputs.nixpkgs-lib.follows = "nixpkgs-lib";
     };
-    import-tree.url = "github:vic/import-tree";
     limavm = {
       url = "github:quasi-coherent/limavm.nix";
       inputs.flake-parts.follows = "flake-parts";
@@ -34,4 +31,25 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
+
+  outputs =
+    inputs:
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+      systems = import inputs.systems;
+      imports = [ ./nix ];
+
+      perSystem =
+        { system, ... }:
+        {
+          _module.args = {
+            pkgs = import inputs.nixpkgs {
+              inherit system;
+              overlays = [
+                inputs.ocaml-overlay.overlays.default
+                inputs.fenix.overlays.default
+              ];
+            };
+          };
+        };
+    };
 }

@@ -23,6 +23,7 @@
           pkgs.cloudflared
           pkgs.importNpmLock.hooks.linkNodeModulesHook
           pkgs.just
+          pkgs.nh
           pkgs.nix-output-monitor
           pkgs.nixd
           pkgs.nodejs
@@ -36,7 +37,6 @@
           pkgs.ocamlPackages.reason-react-ppx
           pkgs.sqlx-cli
           rustTools.toolchain
-          self'.packages.ed-frontend
           self'.packages.ed-migratedb
           self'.packages.ed-server
           self'.packages.openapiGen
