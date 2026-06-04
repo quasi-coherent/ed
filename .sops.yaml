@@ -1,6 +1,13 @@
+keys:
+  - &qcoh age1hrk0haltt9qtw440yf3lzvjteglrhv3wcwcq54qv0qz2udukmuzqve33my
+  - &limavm age1vexea9ncceq7dz4rhhs40rt2lvudz5emzra2m7959sq6alw00yastpn0sj
 creation_rules:
-  - key_groups:
+  - path_regex: secrets/guest.yaml
+    key_groups:
       - age:
-          - age1hrk0haltt9qtw440yf3lzvjteglrhv3wcwcq54qv0qz2udukmuzqve33my
-          - age1vexea9ncceq7dz4rhhs40rt2lvudz5emzra2m7959sq6alw00yastpn0sj
-    path_regex: ^nix/nixos/ed\.secrets\.yaml$
+          - *qcoh
+          - *limavm
+  - path_regex: secrets/host.yaml
+    key_groups:
+      - age:
+          - *qcoh

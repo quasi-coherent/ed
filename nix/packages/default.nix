@@ -6,9 +6,12 @@ let
       crane,
       pkgs,
       rustTools,
+      self',
       ...
     }:
     let
+      inherit (pkgs) lib;
+
       ed-frontend = pkgs.callPackage ./ed-frontend.nix { };
 
       ed-server = pkgs.callPackage ./ed-server.nix {
@@ -19,6 +22,11 @@ let
     {
       packages = {
         inherit ed-server ed-frontend;
+
+        default = pkgs.writeShellApplication {
+          name = "fmtt";
+          text = "${lib.getExe self'.formatter}";
+        };
 
         ed-migratedb = crane.buildPackage {
           inherit (commonArgs)

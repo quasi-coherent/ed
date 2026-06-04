@@ -56,8 +56,10 @@ async fn run() -> anyhow::Result<()> {
         .fallback_service(static_files)
         .layer(TraceLayer::new_for_http());
 
-    let port: u16 =
-        std::env::var("PORT").ok().and_then(|s| s.parse().ok()).unwrap_or(3000);
+    let port: u16 = std::env::var("APP_PORT")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(3000);
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
 
     tracing::info!(

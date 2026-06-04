@@ -5,10 +5,9 @@
     inputs.limavm.flakeModules.den
     inputs.treefmt-nix.flakeModule
 
-    (inputs.import-tree ./nixos)
-
     ./checks.nix
     ./lib.nix
+    ./nixos
     ./packages
     ./shells.nix
   ];
@@ -35,11 +34,12 @@
           rustfmt.enable = true;
           nixfmt.enable = true;
           taplo.enable = true;
-          typos = {
-            enable = true;
-            excludes = [ "ed.secrets.yaml" ];
-          };
+          typos.enable = true;
         };
+        settings.excludes = [
+          "secrets/*"
+          ".direnv/*"
+        ];
         settings.formatter = {
           "refmt" = {
             command = "${pkgs.bash}/bin/bash";

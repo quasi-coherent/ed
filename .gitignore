@@ -1,11 +1,11 @@
 .DS_Store
 .direnv/
 target/
+__pycache__/
 _build
 dist
 docs/instructions.md
 node_modules
-.dir-locals.el
 result
 *.install
 !.envrc
