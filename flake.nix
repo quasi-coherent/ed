@@ -11,7 +11,8 @@
       inputs.nixpkgs-lib.follows = "nixpkgs-lib";
     };
     limavm = {
-      url = "github:quasi-coherent/limavm.nix";
+      # url = "github:quasi-coherent/limavm.nix";
+      url = "git+file:///Users/daniel/d/git/hub/limavm.nix";
       inputs.flake-parts.follows = "flake-parts";
       inputs.nixpkgs.follows = "nixpkgs";
     };
