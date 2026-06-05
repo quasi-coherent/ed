@@ -1,5 +1,5 @@
 [package]
-name = "ed-oauth"
+name = "ed-auth"
 version.workspace = true
 edition.workspace = true
 

@@ -38,7 +38,7 @@
           options = with lib; {
             port = mkOption {
               type = types.int;
-              default = 8192;
+              default = 15625;
             };
           };
         }

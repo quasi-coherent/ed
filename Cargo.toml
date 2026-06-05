@@ -16,11 +16,11 @@ name = "ed-server"
 path = "bin/serve.rs"
 
 [dependencies]
+ed-auth = { workspace = true }
 ed-axum = { workspace = true, features = ["server"] }
 ed-clients = { workspace = true }
 ed-db = { workspace = true }
 ed-migratedb = { workspace = true }
-ed-oauth = { workspace = true }
 ed-types = { workspace = true }
 tern = { workspace = true }
 
@@ -43,11 +43,11 @@ tracing-subscriber = { workspace = true }
 uuid = { workspace = true }
 
 [workspace.dependencies]
+ed-auth = { version = "=0.1.0", path = "crates/ed-auth" }
 ed-axum = { version = "=0.1.0", path = "crates/ed-axum", default-features = false }
 ed-clients = { version = "=0.1.0", path = "crates/ed-clients" }
 ed-db = { version = "=0.1.0", path = "crates/ed-db" }
 ed-migratedb = { version = "=0.1.0", path = "crates/ed-migratedb" }
-ed-oauth = { version = "=0.1.0", path = "crates/ed-oauth" }
 ed-types = { version = "=0.1.0", path = "crates/ed-types" }
 
 ammonia = "4.1.2"

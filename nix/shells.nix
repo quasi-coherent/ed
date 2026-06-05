@@ -38,6 +38,7 @@
           pkgs.sqlx-cli
           rustTools.toolchain
           self'.packages.ed-migratedb
+          self'.packages.ed-deploy
           self'.packages.ed-server
           self'.packages.openapiGen
           self'.packages.sqlx-prepare
