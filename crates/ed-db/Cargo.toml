@@ -9,6 +9,7 @@ chrono = { workspace = true }
 futures = { workspace = true }
 log = { workspace = true }
 pgvector = { workspace = true, features = ["postgres", "sqlx"] }
+secrecy = { workspace = true }
 serde_json = { workspace = true }
 sqlx = { workspace = true, features = ["chrono", "json", "uuid"] }
 url = { workspace = true }

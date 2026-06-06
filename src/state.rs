@@ -1,16 +1,23 @@
-use ed_clients::EdClientService;
+use ed_clients::{AnthropicToken, EdServices, OpenAiToken};
 use ed_db::EdApiSchema;
 
-/// Shared application state passed to every handler.
+use crate::SecretStore;
+
+/// Axum app state for each handler.
 #[derive(Clone, Debug)]
 pub struct AppState {
     pub db: EdApiSchema,
-    pub clients: EdClientService,
+    pub services: EdServices,
 }
 
 impl AppState {
-    pub fn new(db: EdApiSchema, clients: EdClientService) -> Self {
-        Self { db, clients }
+    pub async fn try_init(store: SecretStore) -> anyhow::Result<Self> {
+        let anth = AnthropicToken(store.anthropic_api_key);
+        let oai = OpenAiToken(store.openai_api_key);
+        Ok(Self {
+            db: EdApiSchema::try_init(store.db_url).await?,
+            services: EdServices::try_init(anth, oai)?,
+        })
     }
 }
 

@@ -1,16 +1,9 @@
 //! Per-route handler bodies. Each returns `Result<T, AppError>`; the trait
 //! impl in `router.rs` maps these into the generated response enums.
 use chrono::Utc;
-use ed_axum::models::{
-    Audience, ConfidenceScore, CorpusUpload, DimensionScore, GenerateRequest,
-    GenerateResponse, HistoryList, IngestResult, MessageList, RetrievedMessage,
-    SimulationEntry, StoredMessage, StyleFingerprint,
-};
-use ed_clients::types::{EmbeddingsRequest, Message as AnthMessage};
-use ed_db::types::{
-    CorpusValue, EmbeddingValue, FingerprintValue, MessageValue, PageParams,
-    SimilarityValue, SimulationValue,
-};
+use ed_axum::models::*;
+use ed_clients::types::{EmbeddingsRequest, MessagesRequest};
+use ed_db::types::*;
 use ed_types::fingerprint;
 use futures::stream::{self, StreamExt as _, TryStreamExt as _};
 use pgvector::Vector;
@@ -20,8 +13,6 @@ use uuid::Uuid;
 use crate::error::AppError;
 use crate::prompt::{render_prompt, score_confidence};
 use crate::state::AppState;
-
-const EMBEDDING_MODEL: &str = "text-embedding-3-small";
 
 pub async fn ingest(
     state: &AppState,
@@ -39,8 +30,8 @@ pub async fn ingest(
     let embeddings = st
         .then(|msg| async move {
             let embedding = state
-                .clients
-                .embed(EmbeddingsRequest::new(EMBEDDING_MODEL, &msg.body))
+                .services
+                .embed(EmbeddingsRequest::new(&msg.body))
                 .await
                 .map_err(AppError::Client)?;
 
@@ -141,8 +132,8 @@ pub async fn generate(
     let retrieval_count = req.retrieval_count.unwrap_or(4) as i64;
 
     let prompt_embedding = state
-        .clients
-        .embed(EmbeddingsRequest::new(EMBEDDING_MODEL, &req.prompt))
+        .services
+        .embed(EmbeddingsRequest::new(&req.prompt))
         .await
         .map_err(AppError::Client)?;
     let prompt_vector = Vector::from(prompt_embedding.to_vec());
@@ -174,8 +165,8 @@ pub async fn generate(
     );
 
     let response = state
-        .clients
-        .complete(AnthMessage::new_default(&assembled))
+        .services
+        .prompt(MessagesRequest::new(&assembled))
         .await
         .map_err(AppError::Client)?;
     let generated_text = response.to_string();

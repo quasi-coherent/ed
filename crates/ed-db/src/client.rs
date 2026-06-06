@@ -3,6 +3,7 @@ use futures::future::{BoxFuture, FutureExt as _, TryFutureExt as _};
 use futures::stream::TryStreamExt as _;
 use log::LevelFilter;
 use pgvector::Vector;
+use secrecy::{ExposeSecret as _, SecretString};
 use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
 use sqlx::{ConnectOptions as _, PgPool};
 use std::ops::{Deref, DerefMut};
@@ -12,13 +13,19 @@ use url::Url;
 use crate::query::{ReadEdApiSchema, WriteEdApiSchema};
 use crate::types::*;
 
-/// Configures a [`EdDbClient`].
+/// Db config.
 #[derive(Clone, Debug)]
 pub struct EdDbConfig {
     name: String,
     max_conn: u32,
     acquire_timeout: Duration,
     log_level: LevelFilter,
+}
+
+impl Default for EdDbConfig {
+    fn default() -> Self {
+        Self::new("ed-db")
+    }
 }
 
 impl EdDbConfig {
@@ -43,9 +50,9 @@ impl EdDbConfig {
         Self { log_level: LevelFilter::Debug, ..self }
     }
 
-    pub async fn try_new_client<T: AsRef<str>>(
+    pub async fn try_new_client(
         self,
-        db_url: T,
+        db_url: SecretString,
     ) -> anyhow::Result<EdDbClient> {
         EdDbClient::new(self, db_url).await
     }
@@ -56,11 +63,11 @@ impl EdDbConfig {
 pub struct EdDbClient(PgPool);
 
 impl EdDbClient {
-    pub async fn new<T: AsRef<str>>(
+    pub async fn new(
         config: EdDbConfig,
-        db_url: T,
+        db_url: SecretString,
     ) -> anyhow::Result<Self> {
-        let url = Url::parse(db_url.as_ref())?;
+        let url = Url::parse(db_url.expose_secret())?;
         let conn_opt = PgConnectOptions::from_url(&url)?
             .application_name(&config.name)
             .log_statements(config.log_level);

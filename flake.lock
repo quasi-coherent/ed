@@ -85,17 +85,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1780628212,
-        "narHash": "sha256-HStPHd4zLwyw3RvMKHVJBcRmyIfRr6MgTdgFXcGqSaM=",
-        "ref": "refs/heads/master",
-        "rev": "17034fef0f3f6463fca1ac84d8ccc9408f7fc6ee",
-        "revCount": 24,
-        "type": "git",
-        "url": "file:///Users/daniel/d/git/hub/limavm.nix"
+        "lastModified": 1780676799,
+        "narHash": "sha256-xfyrxOs2NHCaDe/1eZTXbL2ngfVY4VTWEa4Le0KZkd0=",
+        "owner": "quasi-coherent",
+        "repo": "limavm.nix",
+        "rev": "35f281d361f00cb1189bf85c2b8a53953a4ad668",
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "file:///Users/daniel/d/git/hub/limavm.nix"
+        "owner": "quasi-coherent",
+        "repo": "limavm.nix",
+        "type": "github"
       }
     },
     "nixpkgs": {
