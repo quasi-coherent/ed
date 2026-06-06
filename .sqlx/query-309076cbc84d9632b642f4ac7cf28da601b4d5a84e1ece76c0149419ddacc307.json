@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\nDELETE FROM ed_api.users\nWHERE id = $1;\n",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "309076cbc84d9632b642f4ac7cf28da601b4d5a84e1ece76c0149419ddacc307"
+}

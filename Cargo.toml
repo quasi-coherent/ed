@@ -16,13 +16,12 @@ name = "ed-server"
 path = "bin/serve.rs"
 
 [dependencies]
-ed-auth = { workspace = true }
 ed-axum = { workspace = true, features = ["server"] }
+ed-axum-oauth = { workspace = true }
 ed-clients = { workspace = true }
 ed-db = { workspace = true }
 ed-migratedb = { workspace = true }
 ed-types = { workspace = true }
-tern = { workspace = true }
 
 anyhow = { workspace = true }
 async-trait = { workspace = true }
@@ -45,8 +44,8 @@ tracing-subscriber = { workspace = true }
 uuid = { workspace = true }
 
 [workspace.dependencies]
-ed-auth = { version = "=0.1.0", path = "crates/ed-auth" }
 ed-axum = { version = "=0.1.0", path = "crates/ed-axum", default-features = false }
+ed-axum-oauth = { version = "=0.1.0", path = "crates/ed-axum-oauth" }
 ed-clients = { version = "=0.1.0", path = "crates/ed-clients" }
 ed-db = { version = "=0.1.0", path = "crates/ed-db" }
 ed-migratedb = { version = "=0.1.0", path = "crates/ed-migratedb" }
@@ -64,6 +63,7 @@ axum-extra = { version = "0.12.6", features = [
 base64 = "0.22.1"
 bytes = "1.11.1"
 chrono = { version = "0.4.44", features = ["serde"] }
+cookie = "0.18.1"
 frunk = "0.4.4"
 frunk-enum-core = "0.3.0"
 frunk-enum-derive = "0.3.0"
@@ -86,6 +86,7 @@ simplelog = "0.12.2"
 sqlx = { version = "0.9.0", features = ["macros", "postgres", "runtime-tokio"] }
 tern = { version = "3.1.5", features = ["cli", "sqlx_postgres"] }
 thiserror = "2.0"
+time = "0.3.47"
 tower-http = { version = "0.6", features = ["fs", "trace"] }
 tracing = "0.1.44"
 tracing-subscriber = "0.3.23"

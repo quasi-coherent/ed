@@ -77,7 +77,10 @@ pub async fn delete_corpus(
     state: &AppState,
     user_id: Uuid,
 ) -> Result<(), AppError> {
-    state.db.delete_corpus(user_id).await.map_err(AppError::Db)
+    if !state.db.delete_corpus(user_id).await.map_err(AppError::Db)? {
+        return Err(AppError::NotFound);
+    }
+    Ok(())
 }
 
 pub async fn list_corpus(

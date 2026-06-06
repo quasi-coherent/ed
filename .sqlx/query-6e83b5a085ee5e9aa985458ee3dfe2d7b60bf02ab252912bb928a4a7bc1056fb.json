@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "DELETE FROM ed_api.simulations\nWHERE user_id = $1 AND id = $2;\n",
+  "query": "\nDELETE FROM ed_api.simulations\nWHERE\n  id = $1\n  AND user_id = $2;\n",
   "describe": {
     "columns": [],
     "parameters": {
@@ -11,5 +11,5 @@
     },
     "nullable": []
   },
-  "hash": "eb896e153c6dff461b136cfc21547c530fe99b21abb72ddc0c68d0bd47d6bc8e"
+  "hash": "6e83b5a085ee5e9aa985458ee3dfe2d7b60bf02ab252912bb928a4a7bc1056fb"
 }

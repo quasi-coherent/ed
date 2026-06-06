@@ -7,7 +7,7 @@
 writeShellApplication {
   name = "sqlx-prepare";
   text = ''
-    if [ -n "$DATABASE_URL" ]; then
+    if [ -z "$DATABASE_URL" ]; then
       echo "expected DATABASE_URL to be set"
       exit 1
     fi
