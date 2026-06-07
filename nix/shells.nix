@@ -38,9 +38,10 @@
           pkgs.sqlx-cli
           rustTools.toolchain
           self'.packages.ed-migratedb
-          self'.packages.ed-deploy
-          self'.packages.ed-server
-          self'.packages.openapiGen
+          self'.packages.ed-lima
+          self'.packages.ed-lima-yaml
+          self'.packages.ed-app
+          self'.packages.openapi-gen
           self'.packages.sqlx-prepare
         ];
         npmDeps =

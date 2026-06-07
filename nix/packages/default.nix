@@ -21,12 +21,21 @@ let
     in
     {
       packages = {
-        inherit ed-server ed-frontend;
-
         default = pkgs.writeShellApplication {
           name = "fmtt";
           text = "${lib.getExe self'.formatter}";
         };
+
+        openapi-gen =
+          let
+            openapiYaml = pkgs.writeTextFile {
+              name = "openapi.yaml";
+              text = builtins.readFile ../../api/openapi.yaml;
+            };
+          in
+          pkgs.callPackage ./openapi-gen.nix { inherit openapiYaml; };
+
+        sqlx-prepare = pkgs.callPackage ./sqlx-prepare.nix { inherit (rustTools) cargo; };
 
         ed-migratedb = crane.buildPackage {
           inherit (commonArgs)
@@ -40,16 +49,7 @@ let
           meta.mainProgram = "ed-migratedb";
         };
 
-        openapiGen =
-          let
-            openapiYaml = pkgs.writeTextFile {
-              name = "openapi.yaml";
-              text = builtins.readFile ../../api/openapi.yaml;
-            };
-          in
-          pkgs.callPackage ./openapi-gen.nix { inherit openapiYaml; };
-
-        sqlx-prepare = pkgs.callPackage ./sqlx-prepare.nix { inherit (rustTools) cargo; };
+        ed-app = pkgs.callPackage ./ed-app.nix { inherit ed-server; };
       };
     };
 in

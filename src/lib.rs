@@ -1,9 +1,8 @@
 use anyhow::Context as _;
-use axum::Router;
 use secrecy::SecretString;
 use serde::Deserialize;
 use std::net::SocketAddr;
-use std::path::Path;
+use std::path::PathBuf;
 use tokio::net::TcpListener;
 use tower_http::services::{ServeDir, ServeFile};
 use tower_http::trace::TraceLayer;
@@ -17,19 +16,21 @@ mod state;
 use state::AppState;
 
 pub struct AppConfig {
-    listener_port: u16,
-    asset_dir: PathBuf,
+    port: u16,
+    frontend_dir: PathBuf,
 }
 
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
-            listener_port: std::env::var("APP_PORT")
-                .and_then(str::parse)
+            port: std::env::var("APP_PORT")
+                .as_deref()
+                .ok()
+                .and_then(|v| str::parse(v).ok())
                 .unwrap_or(15625),
-            asset_dir: std::env::var("APP_ASSET_DIR")
+            frontend_dir: std::env::var("APP_FRONTEND_DIR")
                 .map(PathBuf::from)
-                .unwrap_or_else(|_| PathBuf::from("frontend/dist")),
+                .unwrap_or_else(|_| PathBuf::from("frontend")),
         }
     }
 }
@@ -43,14 +44,14 @@ pub struct SecretStore {
     google_client_secret: SecretString,
 }
 
-pub async fn run<P: AsRef<Path>>(
-    AppConfig { listener_port, asset_dir }: AppConfig,
+pub async fn run(
+    AppConfig { port, frontend_dir }: AppConfig,
     store: SecretStore,
 ) -> anyhow::Result<()> {
     let app = AppState::try_init(store).await?;
 
-    let index_html = asset_dir.as_ref().join("index.html");
-    let spa = ServeDir::new(asset_dir).fallback(ServeFile::new(&index_html));
+    let index_html = frontend_dir.join("index.html");
+    let spa = ServeDir::new(frontend_dir).fallback(ServeFile::new(&index_html));
 
     let router = ed_axum::server::new(app)
         .fallback_service(spa)

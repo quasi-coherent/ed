@@ -7,6 +7,7 @@
 
       sops = {
         defaultSopsFile = ../../../secrets/guest.yaml;
+        age.keyFile = "~/.config/sops/age/lima-keys.txt";
         validateSopsFiles = true;
         secrets = {
           "hello" = { };
@@ -17,17 +18,10 @@
           "google_client_id" = { };
         };
         templates = {
-          "DATABASE_URL".content = ''
-            DATABASE_URL="postgresql://edapp:${config.sops.placeholder.pg_pass}@localhost:5432/edapp?sslmode=require"
-          '';
-          "app_env.sh" = {
-            path = "/run/secrets/app_env.sh";
-            mode = "0644";
-            restartUnits = [ "ed-server.service" ];
+          "DATABASE_URL" = {
+            restartUnits = [ "postgresql.service" ];
             content = ''
               DATABASE_URL="postgresql://edapp:${config.sops.placeholder.pg_pass}@localhost:5432/edapp?sslmode=require"
-              ANTHROPIC_API_KEY="${config.sops.placeholder.anthropic_api_key}"
-              OPENAI_API_KEY="${config.sops.placeholder.openai_api_key}"
             '';
           };
         };

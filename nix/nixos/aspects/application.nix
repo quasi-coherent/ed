@@ -1,4 +1,5 @@
 {
+  den,
   lib,
   ...
 }:
@@ -10,6 +11,8 @@
       svc = config.systemd.services;
     in
     {
+      environment.sessionVariables.APP_PORT = "${toString den.aspects.ed-env.port}";
+
       systemd.services.ed-server = {
         description = "ed-server";
         wantedBy = [ "multi-user.target" ];
@@ -27,7 +30,7 @@
         serviceConfig = {
           Restart = "on-failure";
           RestartSec = 5;
-          ExecStart = "${lib.getExe self'.packages.ed-server}";
+          ExecStart = "${lib.getExe self'.packages.ed-app}";
           # hardening
           NoNewPrivileges = true;
           ProtectSystem = "strict";

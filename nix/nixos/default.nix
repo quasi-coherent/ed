@@ -8,10 +8,11 @@
     ./aspects/application.nix
     ./aspects/secrets.nix
     ./aspects/storage.nix
+    ./deploy.nix
   ];
 
-  # A deployment of the `ed` app.
-  den.aspects.ed-deploy =
+  # Environment that can run the app.
+  den.aspects.ed-env =
     {
       # deadnix: skip
       config,
@@ -22,15 +23,6 @@
         den.aspects.application
         den.aspects.storage
         den.aspects.secrets
-
-        (den.batteries.toLima {
-          cpus = 3;
-          memory = "10GiB";
-          vmType = "qemu";
-          portForwards = [
-            { guestPort = den.aspects.ed-deploy.port; }
-          ];
-        })
       ];
 
       imports = [
@@ -44,8 +36,6 @@
         }
       ];
     };
-
-  den.hosts.aarch64-linux.ed-deploy = { };
 
   den.default = {
     nixos.system.stateVersion = lib.mkDefault "26.05";
