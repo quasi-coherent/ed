@@ -7,7 +7,7 @@
 
       sops = {
         defaultSopsFile = ../../../secrets/guest.yaml;
-        age.keyFile = "~/.config/sops/age/lima-keys.txt";
+        age.keyFile = "~/.config/sops/age/lima/keys.txt";
         validateSopsFiles = true;
         secrets = {
           "hello" = { };

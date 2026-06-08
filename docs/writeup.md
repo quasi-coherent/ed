@@ -16,7 +16,9 @@ inputs/outputs/scoring metrics.
   - A simulation request is handled by calculating cosine distance from previous examples and
     forwarding the most similar in a prompt to the Anthropic messages API, storing and returning
     the result.
-* *Request router/handler* The Rust axum app implementing the API.
+* *Authorization*: OAuth2 client and router handling the authorization flow.
+* *Authorized request router/handler* The Rust axum app implementing the API for authorized users.
+* *Infrastructure*: The "spike" described [below](#spike).
 
 ## Architecture
 
@@ -139,11 +141,13 @@ possible applications of [homomorphic encryption], for instance.
 
 ### Spike
 
-The personal "spike" is kind of a cheat.  I've been a full-time nix user for almost a decade, so nix
-boilerplate is the common preamble.  This was more elaborate because of the frontend bit, but I tried
-to add some more substantial components.
+The personal "spike" lives at the stage where the app would be deployed.  I've been a full-time nix
+user for almost a decade, so nix boilerplate is the common preamble.  This project was more elaborate
+because of the frontend bit, but I wanted to build on that to encompass how and where something runs--
+a "fuller stack" application if you will--which is a significant part the SDLC that is often thought of
+as someone else's concern.
 
-First, the ordinary parts:
+The following command shows which "packages" the repo outputs:
 
 ```console
 > $ nix flake show
@@ -152,69 +156,98 @@ First, the ordinary parts:
 
 └───packages
     ├───aarch64-darwin
-    │   ├───ed-api: package 'ed-api-0.1.0'
-    │   ├───ed-lima: package 'ed-lima' - 'limactl wrapper pinned to the ed nixos-lima config'
+    │   ├───default: package 'fmtt'
+    │   ├───ed-app: package 'ed-app'
+    │   ├───ed-deploy: package 'ed-deploy-lima'
+    │   ├───ed-deploy-yaml: package 'ed-deploy-lima.yaml'
     │   ├───ed-migratedb: package 'ed-migratedb-0.1.0'
-    │   ├───ed-server: package 'ed-server-0.1.0'
-    │   ├───frontend: package 'ed-frontend-0.1.0'
-    │   ├───openapiCodegen: package 'openapi-gen'
-    │   ├───openapiYaml: package 'openapi.yaml'
+    │   ├───openapi-gen: package 'openapi-gen'
     │   └───sqlx-prepare: package 'sqlx-prepare'
-...
-...
+    ├───aarch64-linux
+    │   ├───default omitted (use '--all-systems' to show)
+    │   ├───ed-app omitted (use '--all-systems' to show)
+    │   ├───ed-deploy omitted (use '--all-systems' to show)
+    │   ├───ed-deploy-yaml omitted (use '--all-systems' to show)
+    │   ├───ed-migratedb omitted (use '--all-systems' to show)
+    │   ├───openapi-gen omitted (use '--all-systems' to show)
+    │   └───sqlx-prepare omitted (use '--all-systems' to show)
+    ├───x86_64-darwin
+    │   ├───default omitted (use '--all-systems' to show)
+    │   ├───ed-app omitted (use '--all-systems' to show)
+    │   ├───ed-deploy omitted (use '--all-systems' to show)
+    │   ├───ed-deploy-yaml omitted (use '--all-systems' to show)
+    │   ├───ed-migratedb omitted (use '--all-systems' to show)
+    │   ├───openapi-gen omitted (use '--all-systems' to show)
+    │   └───sqlx-prepare omitted (use '--all-systems' to show)
+    └───x86_64-linux
+        ├───default omitted (use '--all-systems' to show)
+        ├───ed-app omitted (use '--all-systems' to show)
+        ├───ed-deploy omitted (use '--all-systems' to show)
+        ├───ed-deploy-yaml omitted (use '--all-systems' to show)
+        ├───ed-migratedb omitted (use '--all-systems' to show)
+        ├───openapi-gen omitted (use '--all-systems' to show)
+        └───sqlx-prepare omitted (use '--all-systems' to show)
 ```
-* The frontend, built on its own in `frontend` creates JS/etc.  This is input to the package `ed-server`
-  which is the complete app: the reason-react app transpiled to JS, the Rust server compiled to binary, the
-  former placed where the latter needs it to be at runtime.
-  - This can be built and ran with one command.  That's true on any operating system since this "flake" is
-    defined generically over all systems.
-* The `ed-api` package on its own is not very useful, but it represents the complete set of Cargo workspace
-  dependencies.
-  - This can be cached in [cachix] and then build instantly for anything that depends on it for anyone with
-    access to the particular cache(s) it goes to.
-* The openapi is in the nix "store" and is an input to the main dependencies, so it is not possible to create
-  a situation where things are out of sync.
+* This "flake" is defined generically over the OS, so it would build on any of those listed.  My local
+  machine is an Apple Silicon laptop, so the system it specializes to is `aarch64-darwin`.
+* The `ed-app` output is the startup [script](../nix/packages/ed-app.nix) for the combined BE/FE.  Because of
+  fact that it includes both, building it involves building both.
+  - Building the Rust portion has an intermediate derivation that represents the complete set of workspace
+    dependencies.  This is an intentional checkpoint because in practice you would be able to hook up to a
+    nix binary cache and push/pull, not just the compiled Rust dependency, but _anything_ declared here.
+    For Rust in particular, this is often a huge deal (this giant Cargo.toml builds in about 0.5 seconds).
+* Utility packages: `sqlx-prepare` and `openapi-gen` are for certain workflows that need you to "update" or
+  "generate" something: changes to the OpenAPI spec will lead to failure without running codegen; same
+  with `sqlx-prepare` and changes to the "query library" found in [`ed-db`](../crates/ed-db/src/query.rs).
+* The service relies on a database, so it relies on a migration tool to manage the state of the DB over time.
+  The `ed-migratedb` package is a self-contained migration runner tracking [these](../ed-migratedb/src/migrations)
+  migrations.
+  - This runs as a systemd service in the deployment that depends on the postgres service and is depended on by
+    the application.
+  - This also makes use of the crate [tern](https://crates.io/crates/tern), which I'm the creator/maintainer of.
+    I think it's pretty slick and also can do really useful things I haven't found anywhere else.
 
-The "step further" is this part of the `nix flake show` output:
+The other two packages, `ed-deploy` and `ed-deploy-yaml`, come from the dependency (a.k.a. "input") [limavm.nix].
+This is also a personal project.  This one didn't exist until now.  Can never have too many.  In looking for a way
+to encapsulate a full deployment in this repo, I found that it was difficult to both create a NixOS system
+(Linux distribution defined in nix expression) for a real deployment and also a local developer environment,
+especially for MacOS users.
 
-```console
-...
+The result is the `limavm.nix` flake, which exposes functionality for taking an existing `nixosSystem`
+configuration and constructing a bootable VM from it that can work on any host system.  This means that
+"production" and "local" nearly coincide ("nearly" because there's some part that's specific to a VM that wouldn't
+apply to a bare-metal deployment).  For convenience, these outputs exist:
+
+* `ed-deploy`: Wraps [`limactl`](https://lima-vm.io/docs/reference/limactl/) specialized to the system named
+  `ed-deploy`.  This can start/stop/interact with the running VM in general.
+* `ed-yaml`: Constructs the configuration that is the input for `limactl`.  Modular in that you can pass any base
+  image to it.
+
+The `ed-deploy` __system_ is an output as well:
+
+```nix
+> $ nix flake show
+...snip...
 ├───nixosConfigurations
-│   ├───ed-host: NixOS configuration
-│   ├───ed-lima-aarch64: NixOS configuration
-│   └───ed-lima-x86_64: NixOS configuration
-...
+│   └───ed-deploy: NixOS configuration
+...snip...
 ```
 
-A `nixosConfigurations` is an entire linux system, unique up to the set of unique dependencies.  It can be deployed
-from scratch, it can be rebuilt where only the "diff" is the thing actually built, or it can be reverted to any
-previous version just as easily.
+This declares a few things:
 
-The `nixosConfigurations` config `ed-host` is meant to be a "production-ish" target, a definition for a minimal
-system that has the app running inside.  This isn't quite complete since I couldn't find a place to host this setup
-in time.  The other two define the same for a VM via [Lima] for an ARM or x86_64 host.
+* [Application](../nix/nixos/aspects/application.nix): The `ed-app` package executed as the command for a
+  systemd service, so this is the running app.
+* [Storage](../nix/nixos/aspects/storage.nix): The storage layer for the app.  Declares two more
+  systemd services, one a complete postgresql instance and another for the migrations.
+* [Secrets](../nix/nixos/aspects/secrets.nix): The app needs a number of secrets at startup.  Rather
+  than providing them in plaintext as environment variables, this defines them as encrypted objects in
+  the nix store, which are at most ephemeral in their decrypted form only for a process that owns the
+  key they were encrypted with.
 
-Here "full stack" means:
-
-* The backend+frontend is defined in the `nixosConfigurations` as a systemd unit.
-* The VM versions include the configuration, users, extensions, networking, etc. for a real PostgreSQL database.
-  - The backend+frontend points to _a_ database, this one in the VM setting, but either way depends on a
-    systemd oneshot that runs database migrations on the same database.
-
-The app also deals with API keys and (in a theoretical future) cryptographic secrets for securing inputs/outputs.
-
-* Secrets are managed via SOPS: encrypted, can only be decrypted by a process that has an age key that it was
-  encrypted with.
-  - If the process that decrypts the secret handles it in a safe way, i.e., storing in-app with some utility
-    like `libsodium` for memory-protection, there is no point in time where the secret exists in a decrypted
-    form.
-* Works exactly the same in both VM/cloud scenarios.
-
-In the end, it's as close as you can get to local/production parity, and I envisioned it being convenient in
-this case to "write once, deploy twice" even if that didn't quite come true.  Anyway, I really like nix, it's
-cool.
+Anyway, I really like nix, it's cool.
 
 [openapi]: ../api/openapi.yaml
 [homomorphic encryption]: https://en.wikipedia.org/wiki/Homomorphic_encryption
 [cachix]: https://docs.cachix.org
 [Lima]: https://github.com/lima-vm/lima
+[limavm.nix]: https://github.com/quasi-coherent/limavm.nix

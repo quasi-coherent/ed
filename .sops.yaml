@@ -1,9 +1,9 @@
 keys:
   - &qcoh age1hrk0haltt9qtw440yf3lzvjteglrhv3wcwcq54qv0qz2udukmuzqve33my
-  - &limavm age1vexea9ncceq7dz4rhhs40rt2lvudz5emzra2m7959sq6alw00yastpn0sj
+  - &lima age1dmccvz232s6vvqylyylefegn4gkveqhf3sgq9v97gahs3nyffc9snn8l44
 creation_rules:
   - path_regex: secrets/guest.yaml
     key_groups:
       - age:
           - *qcoh
-          - *limavm
+          - *lima
