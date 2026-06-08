@@ -1,0 +1,30 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\nINSERT INTO ed_api.sessions (user_id, created_at, expires_at)\n  VALUES ($1, $2, $3)\n  RETURNING (id);\n",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ed_api.sessions",
+            "name": "id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "23bb90033592c0bb820ccc44261963fbcce09daf87831da12a911486081c05f8"
+}

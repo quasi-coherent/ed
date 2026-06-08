@@ -1,15 +1,4 @@
--- V2 creates all the tables needed by the backend.
-
--- User auth.  Not used at time of writing for auth, but it's simpler to add now
--- since `user_id` is everywhere.
-CREATE TABLE IF NOT EXISTS ed_api.users (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  provider text NOT NULL,
-  provider_id text NOT NULL,
-  email TEXT,
-  created_at timestamptz(3) NOT NULL DEFAULT now(),
-  UNIQUE (provider, provider_id)
-);
+-- V3 creates all the tables needed by the backend.
 
 -- Messages stored as bytea to support encryption. `audience` is an enum but if
 -- we make it an enum in the db we're going to have a bad time.
@@ -23,6 +12,11 @@ CREATE TABLE IF NOT EXISTS ed_api.corpora (
 
 CREATE INDEX IF NOT EXISTS corpora_uid_aud_idx
   ON ed_api.corpora (user_id, audience, created_at DESC);
+
+ALTER TABLE ed_api.corpora ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY corpora_uid_pol ON ed_api.corpora
+  USING (user_id = current_setting('ed_api.user_id')::uuid);
 
 CREATE TABLE IF NOT EXISTS ed_api.fingerprints (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

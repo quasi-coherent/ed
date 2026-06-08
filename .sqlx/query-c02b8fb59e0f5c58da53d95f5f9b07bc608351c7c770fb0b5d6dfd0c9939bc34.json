@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO ed_api.corpora (user_id, body, audience)\n  VALUES ($1, $2, $3)\n  RETURNING id;\n",
+  "query": "\nINSERT INTO ed_api.corpora (user_id, body, audience)\n  VALUES ($1, $2, $3)\n  RETURNING id;\n",
   "describe": {
     "columns": [
       {
@@ -26,5 +26,5 @@
       false
     ]
   },
-  "hash": "ae67d1be25df977c7f94c6bbd8500a9de33ca5a594468013e5a8515fccdc202b"
+  "hash": "c02b8fb59e0f5c58da53d95f5f9b07bc608351c7c770fb0b5d6dfd0c9939bc34"
 }

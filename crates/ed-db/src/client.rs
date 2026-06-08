@@ -1,6 +1,6 @@
 use anyhow::Context as _;
+use chrono::{DateTime, Utc};
 use futures::future::{BoxFuture, FutureExt as _, TryFutureExt as _};
-use futures::stream::TryStreamExt as _;
 use log::LevelFilter;
 use pgvector::Vector;
 use secrecy::{ExposeSecret as _, SecretString};
@@ -10,7 +10,10 @@ use std::ops::{Deref, DerefMut};
 use std::time::Duration;
 use url::Url;
 
-use crate::query::{ReadEdApiSchema, WriteEdApiSchema};
+use crate::query::{
+    ReadEdApiSchema, ReadWriteEdUsers, UserScoped, WriteEdApiSchema,
+};
+use crate::sql;
 use crate::types::*;
 
 /// Db config.
@@ -52,7 +55,7 @@ impl EdDbConfig {
 
     pub async fn try_new_client(
         self,
-        db_url: SecretString,
+        db_url: &SecretString,
     ) -> anyhow::Result<EdDbClient> {
         EdDbClient::new(self, db_url).await
     }
@@ -65,7 +68,7 @@ pub struct EdDbClient(PgPool);
 impl EdDbClient {
     pub async fn new(
         config: EdDbConfig,
-        db_url: SecretString,
+        db_url: &SecretString,
     ) -> anyhow::Result<Self> {
         let url = Url::parse(db_url.expose_secret())?;
         let conn_opt = PgConnectOptions::from_url(&url)?
@@ -78,6 +81,10 @@ impl EdDbClient {
             .await
             .context("establishing db conn")
             .map(Self)
+    }
+
+    pub fn pg_sql<'a>(&'a self) -> sql::PgSql<&'a PgPool> {
+        sql::PgSql(&self.0)
     }
 }
 
@@ -95,6 +102,80 @@ impl DerefMut for EdDbClient {
     }
 }
 
+impl UserScoped for EdDbClient {
+    fn set_user_id(
+        &self,
+        user_id: uuid::Uuid,
+    ) -> BoxFuture<'_, anyhow::Result<()>> {
+        sqlx::query_scalar!(
+            r#"SELECT set_config('ed_api.user_id', $1, false);"#,
+            user_id.to_string()
+        )
+        .fetch_one(&self.0)
+        .map_ok_or_else(
+            |e| Err(anyhow::Error::from(e)),
+            move |res| {
+                if let Some(val) = res.as_ref()
+                    && let Ok(id) = uuid::Uuid::parse_str(val)
+                    && id == user_id
+                {
+                    return Ok(());
+                }
+                Err(anyhow::anyhow!("set user_id session config"))
+            },
+        )
+        .boxed()
+    }
+}
+
+impl ReadWriteEdUsers for EdDbClient {
+    fn create_user<'v, 'a: 'v>(
+        &'a self,
+        account_id: &'v str,
+        username: &'v str,
+        email: &'v str,
+    ) -> BoxFuture<'v, anyhow::Result<uuid::Uuid>> {
+        self.pg_sql().create_user(account_id, username, email).boxed()
+    }
+
+    fn get_user<'v, 'a: 'v>(
+        &'a self,
+        account_id: &'v str,
+    ) -> BoxFuture<'v, anyhow::Result<Option<UserValue>>> {
+        self.pg_sql().get_user(account_id).boxed()
+    }
+
+    fn delete_user(
+        &self,
+        user_id: uuid::Uuid,
+    ) -> BoxFuture<'_, anyhow::Result<bool>> {
+        self.pg_sql().delete_user(user_id).boxed()
+    }
+
+    fn new_user_session(
+        &self,
+        user_id: uuid::Uuid,
+        created_at: DateTime<Utc>,
+        expires_at: DateTime<Utc>,
+    ) -> BoxFuture<'_, anyhow::Result<uuid::Uuid>> {
+        self.pg_sql().new_user_session(user_id, created_at, expires_at).boxed()
+    }
+
+    fn get_user_session(
+        &self,
+        session_id: uuid::Uuid,
+    ) -> BoxFuture<'_, anyhow::Result<Option<UserSessionValue>>> {
+        self.pg_sql().get_user_session(session_id).boxed()
+    }
+
+    fn delete_user_session(
+        &self,
+        session_id: uuid::Uuid,
+    ) -> BoxFuture<'_, anyhow::Result<bool>> {
+        self.pg_sql().delete_user_session(session_id).boxed()
+    }
+}
+
 impl ReadEdApiSchema for EdDbClient {
     fn get_corpus<'v, 'a: 'v>(
         &'a self,
@@ -102,31 +183,14 @@ impl ReadEdApiSchema for EdDbClient {
         audience: &'v str,
         page: PageParams,
     ) -> BoxFuture<'v, anyhow::Result<Vec<MessageValue>>> {
-        sqlx::query_file_as!(
-            MessageValue,
-            "src/sql/get_corpus.sql",
-            user_id,
-            audience,
-            page.limit as i64,
-            page.offset as i64,
-        )
-        .fetch_all(&self.0)
-        .map_err(anyhow::Error::from)
-        .boxed()
+        self.pg_sql().get_corpus(user_id, audience, page).boxed()
     }
 
     fn get_fingerprint(
         &self,
         user_id: uuid::Uuid,
     ) -> BoxFuture<'_, anyhow::Result<Option<FingerprintValue>>> {
-        sqlx::query_file_as!(
-            FingerprintValue,
-            "src/sql/get_fingerprint.sql",
-            user_id,
-        )
-        .fetch_optional(&self.0)
-        .map_err(anyhow::Error::from)
-        .boxed()
+        self.pg_sql().get_fingerprint(user_id).boxed()
     }
 
     fn get_simulation(
@@ -134,15 +198,7 @@ impl ReadEdApiSchema for EdDbClient {
         user_id: uuid::Uuid,
         simulation_id: uuid::Uuid,
     ) -> BoxFuture<'_, anyhow::Result<Option<SimulationValue>>> {
-        sqlx::query_file_as!(
-            SimulationValue,
-            "src/sql/get_simulation.sql",
-            user_id,
-            simulation_id,
-        )
-        .fetch_optional(&self.0)
-        .map_err(anyhow::Error::from)
-        .boxed()
+        self.pg_sql().get_simulation(user_id, simulation_id).boxed()
     }
 
     fn get_simulations<'v, 'a: 'v>(
@@ -151,17 +207,7 @@ impl ReadEdApiSchema for EdDbClient {
         audience: &'v str,
         page: PageParams,
     ) -> BoxFuture<'v, anyhow::Result<Vec<SimulationValue>>> {
-        sqlx::query_file_as!(
-            SimulationValue,
-            "src/sql/get_simulations.sql",
-            user_id,
-            audience,
-            page.limit as i64,
-            page.offset as i64,
-        )
-        .fetch_all(&self.0)
-        .map_err(anyhow::Error::from)
-        .boxed()
+        self.pg_sql().get_simulations(user_id, audience, page).boxed()
     }
 
     fn get_similarity<'v, 'a: 'v>(
@@ -170,16 +216,7 @@ impl ReadEdApiSchema for EdDbClient {
         vector: &'v Vector,
         limit: i64,
     ) -> BoxFuture<'v, anyhow::Result<Vec<SimilarityValue>>> {
-        sqlx::query_file_as!(
-            SimilarityValue,
-            "src/sql/get_similarity.sql",
-            vector as &Vector,
-            user_id,
-            limit,
-        )
-        .fetch_all(&self.0)
-        .map_err(anyhow::Error::from)
-        .boxed()
+        self.pg_sql().get_similarity(user_id, vector, limit).boxed()
     }
 }
 
@@ -188,105 +225,42 @@ impl WriteEdApiSchema for EdDbClient {
         &'a self,
         value: &'v CorpusValue,
     ) -> BoxFuture<'v, anyhow::Result<uuid::Uuid>> {
-        sqlx::query_file_scalar!(
-            "src/sql/insert_corpus.sql",
-            value.user_id,
-            value.body,
-            &value.audience,
-        )
-        .fetch_one(&self.0)
-        .map_err(anyhow::Error::from)
-        .boxed()
+        self.pg_sql().insert_corpus(value).boxed()
     }
 
-    fn delete_corpus<'v, 'a: 'v>(
-        &'a self,
+    fn delete_corpus(
+        &self,
         user_id: uuid::Uuid,
-    ) -> BoxFuture<'v, anyhow::Result<()>> {
-        sqlx::query!("DELETE FROM ed_api.corpora WHERE user_id = $1", user_id)
-            .execute(&self.0)
-            .map_ok(|_| ())
-            .map_err(anyhow::Error::from)
-            .boxed()
+    ) -> BoxFuture<'_, anyhow::Result<bool>> {
+        self.pg_sql().delete_corpus(user_id).boxed()
     }
 
     fn insert_fingerprint<'v, 'a: 'v>(
         &'a self,
         value: &'v FingerprintValue,
     ) -> BoxFuture<'v, anyhow::Result<uuid::Uuid>> {
-        sqlx::query_file_scalar!(
-            "src/sql/insert_fingerprint.sql",
-            value.user_id,
-            value.formality_score,
-            value.avg_sentence_length,
-            value.sentence_length_variance,
-            value.exclamation_ratio,
-            value.ellipsis_ratio,
-            value.emoji_frequency,
-            value.contraction_ratio,
-            value.hedging_ratio,
-            value.common_openers.as_slice(),
-            value.common_closers.as_slice(),
-            value.message_count,
-        )
-        .fetch_one(&self.0)
-        .map_err(anyhow::Error::from)
-        .boxed()
+        self.pg_sql().insert_fingerprint(value).boxed()
     }
 
     fn insert_embeddings<'v, 'a: 'v>(
         &'a self,
         value: &'v [EmbeddingValue],
     ) -> BoxFuture<'v, anyhow::Result<Vec<uuid::Uuid>>> {
-        Box::pin(async move {
-            let columnar = EmbeddingValueColumnar::from_slice(value);
-            let res = sqlx::query_file_scalar!(
-                "src/sql/insert_embeddings.sql",
-                &columnar.message_ids.as_slice(),
-                &columnar.user_ids.as_slice(),
-                &columnar.vectors.as_slice() as _,
-            )
-            .fetch(&self.0)
-            .try_collect::<Vec<_>>()
-            .await?;
-            Ok(res)
-        })
+        self.pg_sql().insert_embeddings(value).boxed()
     }
 
     fn insert_simulation<'v, 'a: 'v>(
         &'a self,
         value: &'v SimulationValue,
     ) -> BoxFuture<'v, anyhow::Result<uuid::Uuid>> {
-        sqlx::query_file_scalar!(
-            "src/sql/insert_simulation.sql",
-            value.user_id,
-            value.prompt,
-            value.audience,
-            value.nudge.as_deref(),
-            value.generated_text,
-            value.confidence_overall,
-            value.confidence_dimensions,
-            value.retrieved_examples,
-            value.fingerprint_snapshot,
-        )
-        .fetch_one(&self.0)
-        .map_err(anyhow::Error::from)
-        .boxed()
+        self.pg_sql().insert_simulation(value).boxed()
     }
 
-    fn delete_simulation<'v, 'a: 'v>(
-        &'a self,
+    fn delete_simulation(
+        &self,
         user_id: uuid::Uuid,
         simulation_id: uuid::Uuid,
-    ) -> BoxFuture<'v, anyhow::Result<bool>> {
-        sqlx::query_file!(
-            "src/sql/delete_simulation.sql",
-            user_id,
-            simulation_id,
-        )
-        .execute(&self.0)
-        .map_ok(|r| r.rows_affected() > 0)
-        .map_err(anyhow::Error::from)
-        .boxed()
+    ) -> BoxFuture<'_, anyhow::Result<bool>> {
+        self.pg_sql().delete_simulation(user_id, simulation_id).boxed()
     }
 }

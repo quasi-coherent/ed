@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO ed_api.embeddings (message_id, user_id, vector)\n  SELECT *\n  FROM unnest(\n    $1::uuid[],\n    $2::uuid[],\n    $3::vector[]\n  )\n  RETURNING id;\n",
+  "query": "\nINSERT INTO ed_api.embeddings (message_id, user_id, vector)\n  SELECT *\n  FROM unnest(\n    $1::uuid[],\n    $2::uuid[],\n    $3::vector[]\n  )\n  RETURNING id;\n",
   "describe": {
     "columns": [
       {
@@ -38,5 +38,5 @@
       false
     ]
   },
-  "hash": "7fe64d28bd5667501aab7f9fea6c7154431e63b75645405f1f6874da9706f86d"
+  "hash": "89dd17df46897743bc6a06f5d5b798c2bbc9b83d7b0c14b06a09adea0a2f4857"
 }

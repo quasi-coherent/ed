@@ -5,37 +5,36 @@
 use secrecy::SecretString;
 use std::fmt::{self, Debug, Formatter};
 use std::ops::Deref;
-use std::sync::Arc;
 
 mod client;
 pub use client::{EdDbClient, EdDbConfig};
 
 mod query;
-pub use query::{ReadEdApiSchema, WriteEdApiSchema};
+pub use query::*;
 
+pub mod sql;
 pub mod types;
 
 /// A type that has the full query capability.
 pub trait EdApiSchemaOwner:
-    ReadEdApiSchema + WriteEdApiSchema + Send + Sync + 'static
+    UserScoped + ReadEdApiSchema + WriteEdApiSchema + 'static
 {
 }
 
 impl<C> EdApiSchemaOwner for C where
-    C: ReadEdApiSchema + WriteEdApiSchema + Send + Sync + 'static
+    C: UserScoped + ReadEdApiSchema + WriteEdApiSchema + 'static
 {
 }
 
 /// `EdApiSchema` encapsulates operations on tables in the `ed_api` schema.
-#[derive(Clone)]
-pub struct EdApiSchema(Arc<dyn EdApiSchemaOwner>);
+pub struct EdApiSchema(Box<dyn EdApiSchemaOwner>);
 
 impl EdApiSchema {
     pub fn new<C: EdApiSchemaOwner>(inner: C) -> Self {
-        Self(Arc::new(inner))
+        Self(Box::new(inner))
     }
 
-    pub async fn try_init(db_url: SecretString) -> anyhow::Result<Self> {
+    pub async fn try_init(db_url: &SecretString) -> anyhow::Result<Self> {
         let config = EdDbConfig::default();
         let inner = config.try_new_client(db_url).await?;
         Ok(Self::new(inner))
@@ -44,12 +43,41 @@ impl EdApiSchema {
 
 impl Debug for EdApiSchema {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.debug_tuple("EdApiSchemaOwner").finish()
+        f.debug_tuple("EdApiSchema").finish()
     }
 }
 
 impl Deref for EdApiSchema {
-    type Target = Arc<dyn EdApiSchemaOwner>;
+    type Target = Box<dyn EdApiSchemaOwner>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+/// `EdApiSchema` encapsulates operations on tables in the `ed_api` schema.
+pub struct EdUserTable(Box<dyn ReadWriteEdUsers>);
+
+impl EdUserTable {
+    pub fn new<C: ReadWriteEdUsers + 'static>(inner: C) -> Self {
+        Self(Box::new(inner))
+    }
+
+    pub async fn try_init(db_url: &SecretString) -> anyhow::Result<Self> {
+        let config = EdDbConfig::default();
+        let inner = config.try_new_client(db_url).await?;
+        Ok(Self::new(inner))
+    }
+}
+
+impl Debug for EdUserTable {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("EdUserTable").finish()
+    }
+}
+
+impl Deref for EdUserTable {
+    type Target = Box<dyn ReadWriteEdUsers>;
 
     fn deref(&self) -> &Self::Target {
         &self.0

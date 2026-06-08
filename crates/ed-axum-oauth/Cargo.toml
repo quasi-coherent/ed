@@ -1,0 +1,21 @@
+[package]
+name = "ed-axum-oauth"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+axum = { workspace = true }
+axum-extra = { workspace = true }
+chrono = { workspace = true }
+cookie = { workspace = true }
+ed-db = { workspace = true }
+futures = { workspace = true }
+oauth2 = { workspace = true }
+reqwest = { workspace = true }
+secrecy = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+time = { workspace = true }
+url = { workspace = true }
+uuid = { workspace = true }

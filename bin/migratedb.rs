@@ -11,5 +11,7 @@ async fn main() {
     if let Err(e) = app.run().await {
         log::error!("{e}");
         std::process::exit(1);
+    } else {
+        log::info!("OK");
     }
 }

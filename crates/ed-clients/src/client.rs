@@ -1,29 +1,21 @@
 use reqwest::RequestBuilder;
 use reqwest::header::{HeaderMap, HeaderValue, IntoHeaderName};
-use secrecy::{ExposeSecret, SecretString};
-
-const MESSAGES_ENDPOINT: &str = "https://api.anthropic.com/v1/messages";
-const ANTHROPIC_VERSION: &str = "2023-06-01";
-const DEFAULT_MESSAGES_SECRET_KEY: &str = "MESSAGES_API_TOKEN";
+use secrecy::SecretString;
 
 const EMBEDDINGS_ENDPOINT: &str = "https://api.openai.com/v1/embeddings";
-const DEFAULT_EMBEDDINGS_SECRET_KEY: &str = "EMBEDDINGS_API_TOKEN";
+const MESSAGES_ENDPOINT: &str = "https://api.anthropic.com/v1/messages";
+const ANTHROPIC_VERSION: &str = "2023-06-01";
 
 /// Config for building settings.
 #[derive(Clone, Debug)]
 pub struct EdHttpConfig {
     uri: String,
     default_headers: HeaderMap,
-    empty: String,
 }
 
 impl EdHttpConfig {
     fn new<T: Into<String>>(uri: T) -> Self {
-        Self {
-            uri: uri.into(),
-            default_headers: Default::default(),
-            empty: String::default(),
-        }
+        Self { uri: uri.into(), default_headers: Default::default() }
     }
 
     /// Default configuration for the messages API.
@@ -49,7 +41,7 @@ impl EdHttpConfig {
         self
     }
 
-    /// Create an http client with the inner reqest client from this config.
+    /// Create an http client with the inner request client from this config.
     pub fn try_into_client(
         self,
         inner: &reqwest::Client,

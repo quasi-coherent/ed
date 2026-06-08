@@ -242,9 +242,9 @@ checksum = "2af50177e190e07a26ab74f8b1efbfe2ef87da2116221318cb1c2e82baf7de06"
 
 [[package]]
 name = "bitflags"
-version = "2.12.1"
+version = "2.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84d7ced0ae9557296835c32bf1b1e02b44c746701f898460fb000d7eaa84f00a"
+checksum = "b4388bee8683e3d04af747c73422af53102d2bd24d9eadb6cbc100baef4b43f8"
 dependencies = [
  "serde_core",
 ]
@@ -713,8 +713,8 @@ dependencies = [
  "axum",
  "axum-extra",
  "chrono",
- "ed-auth",
  "ed-axum",
+ "ed-axum-oauth",
  "ed-clients",
  "ed-db",
  "ed-migratedb",
@@ -728,19 +728,11 @@ dependencies = [
  "serde",
  "serde_json",
  "simplelog",
- "tern",
  "tokio",
  "tower-http",
  "tracing",
  "tracing-subscriber",
  "uuid",
-]
-
-[[package]]
-name = "ed-auth"
-version = "0.1.0"
-dependencies = [
- "oauth2",
 ]
 
 [[package]]
@@ -771,6 +763,27 @@ dependencies = [
  "tracing-subscriber",
  "uuid",
  "validator",
+]
+
+[[package]]
+name = "ed-axum-oauth"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "axum-extra",
+ "chrono",
+ "cookie",
+ "ed-db",
+ "futures",
+ "oauth2",
+ "reqwest 0.13.4",
+ "secrecy",
+ "serde",
+ "thiserror 2.0.18",
+ "time",
+ "url",
+ "uuid",
 ]
 
 [[package]]
@@ -1248,9 +1261,9 @@ dependencies = [
 
 [[package]]
 name = "hashlink"
-version = "0.11.0"
+version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea0b22561a9c04a7cb1a302c013e0259cd3b4bb619f145b32f72b8b4bcbed230"
+checksum = "824e001ac4f3012dd16a264bec811403a67ca9deb6c102fc5049b32c4574b35f"
 dependencies = [
  "hashbrown 0.16.1",
 ]
@@ -3044,7 +3057,7 @@ dependencies = [
  "futures-io",
  "futures-util",
  "hashbrown 0.16.1",
- "hashlink 0.11.0",
+ "hashlink 0.11.1",
  "indexmap",
  "log",
  "memchr",

@@ -3,7 +3,6 @@ use futures::future::BoxFuture;
 use secrecy::SecretString;
 use std::fmt::{self, Debug, Formatter};
 use std::ops::Deref;
-use std::sync::Arc;
 
 use crate::embeddings::*;
 use crate::messages::*;
@@ -34,8 +33,7 @@ where
 }
 
 /// Implements the client services.
-#[derive(Clone)]
-pub struct EdServices(Arc<dyn ClientRepository>);
+pub struct EdServices(Box<dyn ClientRepository>);
 
 /// Newtype wrappers only to disambiguate in try_init:
 pub struct AnthropicToken(pub SecretString);
@@ -44,7 +42,7 @@ pub struct OpenAiToken(pub SecretString);
 impl EdServices {
     /// New dynamically typed `ClientRepository`.
     pub fn new<C: ClientRepository>(repo: C) -> Self {
-        Self(Arc::new(repo))
+        Self(Box::new(repo))
     }
 
     /// Initialize with defaults.
@@ -76,7 +74,7 @@ impl EdServices {
 }
 
 impl Deref for EdServices {
-    type Target = Arc<dyn ClientRepository>;
+    type Target = Box<dyn ClientRepository>;
 
     fn deref(&self) -> &Self::Target {
         &self.0

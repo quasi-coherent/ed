@@ -9,12 +9,4 @@ services:
     ports:
       - "6432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
-
-  ed:
-    image: ed:latest
-    container_name: ed
-
-
-volumes:
-  pgdata:
+      - ./etc/compose_init.sql:/docker-entrypoint-initdb.d/init.sql

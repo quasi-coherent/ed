@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM ed_api.sessions WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "50a6555c52d838de7fc2b55650ecef98f6af9429ab2a4f01b2c2d942a9cb3d2f"
+}

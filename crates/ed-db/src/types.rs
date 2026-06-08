@@ -104,3 +104,22 @@ pub struct MessageValue {
     pub audience: String,
     pub created_at: DateTime<Utc>,
 }
+
+/// `ed_api.users` value.
+#[derive(Clone, Debug)]
+pub struct UserValue {
+    pub user_id: uuid::Uuid,
+    pub account_id: String,
+    pub username: String,
+    pub email: String,
+    pub created_at: DateTime<Utc>,
+}
+
+/// `ed_api.user_sessions` value.
+#[derive(Clone, Copy, Debug)]
+pub struct UserSessionValue {
+    pub session_id: uuid::Uuid,
+    pub user_id: uuid::Uuid,
+    pub created_at: DateTime<Utc>,
+    pub expires_at: DateTime<Utc>,
+}
