@@ -17,7 +17,7 @@ inputs/outputs/scoring metrics.
     forwarding the most similar in a prompt to the Anthropic messages API, storing and returning
     the result.
 * *Authorization*: OAuth2 client and router handling the authorization flow.
-* *Authorized request router/handler* The Rust axum app implementing the API for authorized users.
+* *Authorized request router/handler*: The Rust axum app implementing the API for authorized users.
 * *Infrastructure*: The "spike" described [below](#spike).
 
 ## Architecture
@@ -107,12 +107,10 @@ request, either to us or to OpenAI for the embedding vector.
 
 #### Security
 
-There are certainly privacy and security concerns.  On a shortlist of next steps would be to harden
-the app in these ways:
+There are unavoidable privacy and security questions.  The app here is hardened in these ways:
 
-* Authentication at the front door: quick and easy would be OAuth2 via GitHub or Google as the
-  provider.  This gets us the user's ID in exchange for the session, which would let us do the
-  next things.
+* A user must be authorized.  This is done with OAuth2 and Google as the provider.  This gives
+  us a `user_id` we can save and use in the next thing.
 * Row-level ownership: We've got the `WHERE user_id = $1` but an extra defense that costs nearly
   nothing is a postgres feature:
 
@@ -122,21 +120,24 @@ CREATE POLICY user_id_pol ON ed_api.corpora
   USING (user_id = current_setting('ed_api.user_id')::uuid);
 ```
 
-The Rust database client can be configured to prepend
+The Rust database client prepends
 
 ```sql
 set_config('ed_api.user_id', <user_id from JWT>, false);
 ```
 
-which lasts from when the connection is acquired until it's released back to the pool.
+which lasts until a connection is yielded back to the pool.
 
-Encryption-at-rest for the data is a bit more tricky when OAuth2 is the mechanism, since there are
-fewer options that stably identify/authorize.  A decent approach would be to store a strong private
-key per user that is encrypted by a master key, which is fetched only when handling requests.  On
-insert and retrieval, the master key decrypts the user's key and it encrypts/decrypts the payloads
-on-demand.
+On the shortlist of next steps: encryption-at-rest.  One possible implementation would be to store
+a strong private key per user that is encrypted by a master key, which is fetched only when handling
+requests.  On insert and retrieval, the master key decrypts the user's key, which in turn encrypts or
+decrypts a payload.
 
-There are also really interesting, but more theoretical, possibilities.  It'd be fun to explore
+In the end, there shouldn't be a point in time where a private key exists in a decrypted form, nor
+user data, since the frontend is served by the backend.  If the frontend were deployed separately, we
+would use service-runtime access tokens for authorization/authentication within the "interior."
+
+There are also really interesting possibilities that are more theoretical.  It'd be fun to explore
 possible applications of [homomorphic encryption], for instance.
 
 ### Spike
@@ -144,8 +145,8 @@ possible applications of [homomorphic encryption], for instance.
 The personal "spike" lives at the stage where the app would be deployed.  I've been a full-time nix
 user for almost a decade, so nix boilerplate is the common preamble.  This project was more elaborate
 because of the frontend bit, but I wanted to build on that to encompass how and where something runs--
-a "fuller stack" application if you will--which is a significant part the SDLC that is often thought of
-as someone else's concern.
+a "fuller stack" application if you will--which is a significant part of the SDLC that's often
+"someone else's job."  I happen to think it should be anyone's job but the developer.
 
 The following command shows which "packages" the repo outputs:
 
@@ -188,14 +189,17 @@ The following command shows which "packages" the repo outputs:
         ├───openapi-gen omitted (use '--all-systems' to show)
         └───sqlx-prepare omitted (use '--all-systems' to show)
 ```
+
+A brief definition of these:
 * This "flake" is defined generically over the OS, so it would build on any of those listed.  My local
-  machine is an Apple Silicon laptop, so the system it specializes to is `aarch64-darwin`.
-* The `ed-app` output is the startup [script](../nix/packages/ed-app.nix) for the combined BE/FE.  Because of
+  machine is an Apple Silicon laptop, so the system it specializes to in my case is `aarch64-darwin`.
+* The `ed-app` output is the startup [script](../nix/packages/ed-app.nix) for the combined BE/FE.  For the
   fact that it includes both, building it involves building both.
   - Building the Rust portion has an intermediate derivation that represents the complete set of workspace
-    dependencies.  This is an intentional checkpoint because in practice you would be able to hook up to a
-    nix binary cache and push/pull, not just the compiled Rust dependency, but _anything_ declared here.
-    For Rust in particular, this is often a huge deal (this giant Cargo.toml builds in about 0.5 seconds).
+    dependencies.  This is an intentional "checkpoint" that in practice you could take advantage of with a
+    nix binary cache like [cachix]. The pre-built version of not just the compiled Rust dependencies, but
+    _anything_ declared here, would be available to anyone with access.
+  - For Rust in particular, this is often a huge deal (this giant Cargo.toml builds in about 0.5 seconds).
 * Utility packages: `sqlx-prepare` and `openapi-gen` are for certain workflows that need you to "update" or
   "generate" something: changes to the OpenAPI spec will lead to failure without running codegen; same
   with `sqlx-prepare` and changes to the "query library" found in [`ed-db`](../crates/ed-db/src/query.rs).
