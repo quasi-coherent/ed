@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::AuthError;
 
@@ -27,6 +27,17 @@ pub trait Provider: Send + Sync + Default {
         &self,
         userinfo: Self::Info,
     ) -> Result<VerifiedUser, AuthError>;
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum Providers {
+    Google,
+}
+
+impl Providers {
+    pub(crate) fn all() -> &'static [Providers] {
+        &[Providers::Google]
+    }
 }
 
 /// A verified user.

@@ -10,22 +10,23 @@ The write-up of the project is [here](./docs/writeup.md).
 
 ## Usage
 
-The default devShell provides a way to deploy the app locally in a VM that is not complicated if you
-already have nix.
+If you have nix
 
-First run
-
-```console
-> $ ed-lima start
-```
-to start the VM.  Next, the app needs developer API keys to function.  Run
-
-```console
-> $ ed-lima source --env OPENAI_API_KEY --env ANTHROPIC_API_KEY
+```nix
+> $ nix build .#ed-deploy
 ```
 
-to source these from your environment, then direct your browser to [localhost:8080](https://localhost:8080).
-See the help for other commands: `ed-lima --help`.
+builds the `nixosSystem` derivation defined [here][ed-deploy] having the app and
+environment to run it.  This also outputs a package attribute that exposes a CLI
+to create and interact with this NixOS system as a VM (managed by [Lima]):
+
+```nix
+> $ ./result/bin/ed-deploy-lima --help
+```
+
+The `start` subcommand starts the boot procedure.  For the app to function from
+within the VM, there's an additional requirement of developer API keys for both the Anthropic and OpenAI APIs.  For security, these are stored and accessed using
+[sops.nix] for secret provisioning.
 
 If without nix, but with desire to run greater than desire to not have nix even temporarily, get a nix
 [installer][lix], follow those instructions, then go up and do these instructions.
@@ -36,7 +37,7 @@ Wonderland and see how deep the rabbit hole goes.  Remember: all that's offered 
 
 ## Etymology
 
-The purpose of the app is mimicry of written human language.  Exotic birds are sometimes known for that.
+The purpose of the app is mimicry of human language.  Exotic birds are sometimes known for that.
 When I was 7 years old, my parents bought me an [umbrella cockatoo][cockatoo], against all better
 judgement.  This is a very serious bird for a 7 year old.  I still can't believe my parents did this.
 
@@ -56,5 +57,8 @@ out there somewhere in the Seattle suburbs.  Of course I know that's not true.
 
 Wherever he is though, I hope he knows I love him back.
 
+[ed-deploy]: ./nix/nixos/default.nix
+[Lima]: https://github.com/lima-vm/lima
+[sops.nix]: https://github.com/mic92/sops-nix
 [lix]: https://lix.systems/install
 [cockatoo]: https://en.wikipedia.org/wiki/White_cockatoo

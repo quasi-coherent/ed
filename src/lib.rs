@@ -1,6 +1,6 @@
 use anyhow::Context as _;
-use axum::Router;
-use ed_axum_oauth::{AuthState, providers};
+use axum::routing::{Router, get};
+use ed_axum_oauth::{AuthHandler, AuthState, providers};
 use secrecy::SecretString;
 use serde::Deserialize;
 use std::net::SocketAddr;
@@ -49,7 +49,10 @@ pub struct SecretStore {
 
 fn auth_router(state: AuthState) -> axum::Router {
     let google_auth = AuthState::router::<providers::Google>();
-    Router::new().nest("/auth/google", google_auth).with_state(state)
+    Router::new()
+        .route("/auth", get(AuthHandler::handle_get_providers))
+        .nest("/google", google_auth)
+        .with_state(state)
 }
 
 pub async fn run(

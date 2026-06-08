@@ -1,7 +1,7 @@
 use axum::response::Redirect;
 use axum_extra::extract::CookieJar;
-use oauth2::basic::BasicClient;
 use oauth2::TokenResponse as _;
+use oauth2::basic::BasicClient;
 use secrecy::{ExposeSecret as _, SecretString};
 use serde::Deserialize;
 

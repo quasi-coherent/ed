@@ -1,6 +1,7 @@
 /* Centralised URL <-> route mapping. */
 
 type route =
+  | Login
   | Upload
   | Profile
   | Messages
@@ -10,6 +11,7 @@ type route =
 
 let toPath = (r: route): string =>
   switch (r) {
+  | Login => "/login"
   | Upload => "/upload"
   | Profile => "/profile"
   | Messages => "/messages"
@@ -20,6 +22,7 @@ let toPath = (r: route): string =>
 
 let ofUrl = (url: ReasonReactRouter.url): route =>
   switch (url.path) {
+  | ["login"] => Login
   | []
   | ["upload"] => Upload
   | ["profile"] => Profile

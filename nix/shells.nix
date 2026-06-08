@@ -37,10 +37,9 @@
           pkgs.ocamlPackages.reason-react-ppx
           pkgs.sqlx-cli
           rustTools.toolchain
-          self'.packages.ed-migratedb
-          self'.packages.ed-lima
-          self'.packages.ed-lima-yaml
           self'.packages.ed-app
+          self'.packages.ed-deploy
+          self'.packages.ed-migratedb
           self'.packages.openapi-gen
           self'.packages.sqlx-prepare
         ];

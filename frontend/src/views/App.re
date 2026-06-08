@@ -15,6 +15,7 @@ let make = () => {
 
   let body =
     switch (route) {
+    | Login => <Login />
     | Upload => <Upload />
     | Profile => <StyleProfile />
     | Messages => <Messages />

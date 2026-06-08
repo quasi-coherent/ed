@@ -83,7 +83,7 @@ impl EdDbClient {
             .map(Self)
     }
 
-    pub fn pg_sql<'a>(&'a self) -> sql::PgSql<&'a PgPool> {
+    pub fn pg_sql(&self) -> sql::PgSql<&PgPool> {
         sql::PgSql(&self.0)
     }
 }

@@ -44,16 +44,10 @@ impl AuthState {
         db_url: &SecretString,
     ) -> anyhow::Result<Self> {
         let db = EdUserTable::try_init(db_url).await?;
-        Ok(Self {
-            db: Arc::new(db),
-            client_id,
-            client_secret,
-            redirect_url,
-        })
+        Ok(Self { db: Arc::new(db), client_id, client_secret, redirect_url })
     }
 
-    fn oauth_client<P: Provider>(&self) -> Result<OAuthClient<P>, AuthError>
-    {
+    fn oauth_client<P: Provider>(&self) -> Result<OAuthClient<P>, AuthError> {
         let redirect_url = url::Url::parse(&self.redirect_url)?;
         Ok(OAuthClient::new(
             &self.client_id,
@@ -63,9 +57,14 @@ impl AuthState {
         ))
     }
 
+    /// The landing page for login.
+    pub fn landing() -> Router {
+        Router::new()
+            .route("/", get(handler::AuthHandler::handle_get_providers))
+    }
+
     /// Router to handle oauth2 flows with the provider `P`.
-    pub fn router<P: Provider + 'static>() -> Router<AuthState>
-    {
+    pub fn router<P: Provider + 'static>() -> Router<AuthState> {
         Router::new()
             .route("/login", get(handler::AuthHandler::<P>::handle_login))
             .route("/callback", get(handler::AuthHandler::<P>::handle_callback))

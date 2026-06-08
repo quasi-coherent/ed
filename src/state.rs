@@ -1,7 +1,7 @@
 use ed_clients::{AnthropicToken, EdServices, OpenAiToken};
 use ed_db::EdApiSchema;
-use std::sync::Arc;
 use secrecy::SecretString;
+use std::sync::Arc;
 
 /// Axum app state for each handler.
 #[derive(Clone, Debug)]

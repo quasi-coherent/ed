@@ -12,7 +12,7 @@
     };
     limavm = {
       url = "github:quasi-coherent/limavm.nix";
-      # url = "git+file:///Users/daniel/d/git/hub/limavm.nix";
+      # url = "path:/Users/daniel/d/git/hub/limavm.nix";
       inputs.flake-parts.follows = "flake-parts";
       inputs.nixpkgs.follows = "nixpkgs";
     };

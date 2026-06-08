@@ -175,11 +175,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1780888192,
-        "narHash": "sha256-TGxQruob+EILynGyP5IuP3RMVyJ/sI2mQLsMplLYbNQ=",
+        "lastModified": 1780903077,
+        "narHash": "sha256-A6zLxen4tHeBZNIpf7ZImPZ3jD3D6q/SITGhjlolKuw=",
         "owner": "quasi-coherent",
         "repo": "limavm.nix",
-        "rev": "a13e9879c2c3c079c42f1b9621cf00ee4bb6e7b1",
+        "rev": "4c98c7e9cd59f780754578bdfbac7e0bc136749b",
         "type": "github"
       },
       "original": {

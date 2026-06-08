@@ -1,15 +1,17 @@
 use anyhow::Context as _;
+use axum::Json;
 use axum::extract::{Query, State};
 use axum::response::{IntoResponse, Redirect};
 use axum_extra::extract::CookieJar;
 use axum_extra::extract::cookie::{Cookie, SameSite};
 use chrono::{DateTime, Utc};
+use reqwest::StatusCode;
 use serde::Serialize;
 use std::ops::Deref;
 
 use crate::client::AuthRequest;
 use crate::constants::*;
-use crate::provider::Provider;
+use crate::provider::{Provider, Providers};
 use crate::{AuthError, AuthState};
 
 #[derive(Default)]
@@ -92,7 +94,14 @@ impl AuthCookies {
     }
 }
 
-pub struct AuthHandler<P>(std::marker::PhantomData<P>);
+pub struct AuthHandler<P = ()>(std::marker::PhantomData<P>);
+
+impl AuthHandler {
+    /// Get /auth
+    pub async fn handle_get_providers() -> impl IntoResponse {
+        (StatusCode::OK, Json(Providers::all()))
+    }
+}
 
 impl<P: Provider + 'static> AuthHandler<P> {
     /// GET /auth/<provider>/login
@@ -161,7 +170,6 @@ impl<P: Provider + 'static> AuthHandler<P> {
         Ok((cookies, Redirect::to("/")))
     }
 }
-
 
 /// `UserSession` is created from a verified user and returned in the redirect
 /// back to the start page.
